@@ -33,11 +33,35 @@ class MeetingRoom extends Model
     protected $casts = [];
 
     /**
+     * Users that have booked the meeting room.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
-    public function bookings()
+    public function users()
     {
         return $this->belongsToMany(User::class, 'users_meeting_rooms');
+    }
+
+    /**
+     * All booking records relates to the meeting room.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function bookingRecords()
+    {
+        return $this->hasMany(Booking::class, 'meeting_room_id', 'id');
+    }
+
+    public function getOccupiedSlots($date)
+    {
+        return $this->bookingRecords();
+//            ->whereBetween('start_at', [$date, $date->addHours(7)])
+//            ->orderBy('start_at')
+//            ->select('start_at', 'end_at');
+    }
+
+    public function getAvailableSlots($date)
+    {
+        return $this->bookingRecords;
     }
 }

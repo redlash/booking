@@ -24,6 +24,7 @@ class Booking extends Model
     protected $fillable = [
         'user_id',
         'meeting_room_id',
+        'occupy_at',
         'start_at',
         'end_at'
     ];
@@ -44,6 +45,7 @@ class Booking extends Model
     protected $casts = [
         'user_id' => 'integer',
         'meeting_room_id' => 'integer',
+        'occupy_at' => 'date',
         'start_at' => 'datetime',
         'end_at' => 'datetime',
     ];

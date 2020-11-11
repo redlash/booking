@@ -50,4 +50,14 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(MeetingRoom::class, 'users_meeting_rooms');
     }
+
+    /**
+     * All booking records the user have.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function bookingRecords()
+    {
+        return $this->hasMany(Booking::class, 'user_id', 'id');
+    }
 }
