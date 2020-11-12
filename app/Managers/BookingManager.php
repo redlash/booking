@@ -68,8 +68,8 @@ class BookingManager
         $rules = [
             'meeting_room_id' => 'required|exists:meeting_rooms,id',
             'occupy_at' => 'required|date',
-            'start_at' => 'required',
-            'end_at' => 'required'
+            'start_at' => 'required|date_format:"H:i"',
+            'end_at' => 'required|date_format:"H:i"|after:start_at'
         ];
 
         $this->validate($data, $rules, trans('validation'));
@@ -107,14 +107,18 @@ class BookingManager
 
         $rules = [
             'meeting_room_id' => 'exists:meeting_rooms,id',
-            'start_at' => 'date_format',
-            'end_at' => 'date_format'
+            'occupy_at' => 'date',
+            'start_at' => 'date_format:"H:i"',
+            'end_at' => 'date_format:"H:i"|after:start_at'
         ];
 
-        $this->validate($data, $rules, trans('app.booking.update.validation'));
+        $this->validate($data, $rules, trans('validation'));
 
         foreach($data as $key => $value) {
-            $booking->$key = $value;
+
+            if (isset($booking->$key)) {
+                $booking->$key = $value;
+            }
         }
         $booking->save();
 

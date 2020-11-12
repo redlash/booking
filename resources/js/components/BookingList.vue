@@ -332,6 +332,11 @@ console.log(`pageChanged: ${url}`)
                 }).then(res => res.json())
                     .then(payload => {
                         console.log(payload);
+                        if ('error' in payload) {
+                            vm.error = payload.error;
+                            vm.errorVisible = true;
+                            return;
+                        }
                         vm.records = payload.data;
                     })
                     .catch(err => {

@@ -2124,7 +2124,7 @@ function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
       var d = vm.state.occupy_at;
       console.log('dateChanged');
       console.log(d);
-      d = d.split('/').join('');
+      d = typeof d === 'string' ? d.split('/').join('') : "".concat(d.getFullYear()).concat(d.getMonth() + 1).concat(d.getDate());
       console.log(d);
 
       if (vm.state.meeting_room_id === '') {
@@ -2188,6 +2188,12 @@ function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
       }).then(function (data) {
         console.log(data);
 
+        if ('error' in data) {
+          vm.error = data.error;
+          vm.errorVisible = true;
+          return;
+        }
+
         if ([null, undefined, ''].includes(vm.record)) {
           vm.$emit('created');
         } else {
@@ -2204,10 +2210,11 @@ function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
         return 'Calculating...';
       }
 
-      var m = parseInt(startAt.mm) + parseInt(minutes);
-      var h = parseInt(startAt.HH) + Math.trunc(m / 60);
-      console.log("m: ".concat(m, ", h: ").concat(h));
-      return "".concat(h, ":").concat(m % 60);
+      var d = new Date();
+      d.setHours(parseInt(startAt.HH));
+      d.setMinutes(parseInt(startAt.mm));
+      d.setMinutes(d.getMinutes() + parseInt(minutes));
+      return "".concat((d.getHours() < 10 ? '0' : '') + d.getHours(), ":").concat((d.getMinutes() < 10 ? '0' : '') + d.getMinutes());
     }
   }
 });
@@ -2520,6 +2527,13 @@ __webpack_require__.r(__webpack_exports__);
           return res.json();
         }).then(function (payload) {
           console.log(payload);
+
+          if ('error' in payload) {
+            vm.error = payload.error;
+            vm.errorVisible = true;
+            return;
+          }
+
           vm.records = payload.data;
         })["catch"](function (err) {
           vm.error = err;
@@ -61577,6 +61591,9 @@ var app = new Vue({
       var instance = this;
       instance.listVisible = false;
       instance.formVisible = false;
+      /* Clear bookingRecord model. */
+
+      instance.bookingRecord = null;
       Vue.nextTick(function () {
         instance.formVisible = true;
       });

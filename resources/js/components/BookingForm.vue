@@ -204,7 +204,11 @@
                 let d = vm.state.occupy_at;
 
                 console.log('dateChanged');console.log(d);
-                d = d.split('/').join('');
+
+                d = (typeof d === 'string')
+                    ? d.split('/').join('')
+                    : `${d.getFullYear()}${d.getMonth()+1}${d.getDate()}`;
+
                 console.log(d);
 
                 if (vm.state.meeting_room_id === '') {
@@ -271,6 +275,12 @@ console.log('cancel')
                 }).then(res => res.json())
                     .then(data => {
                         console.log(data);
+                        if ('error' in data) {
+                            vm.error = data.error;
+                            vm.errorVisible = true;
+                            return;
+                        }
+
                         if ([null, undefined, ''].includes(vm.record)) {
                             vm.$emit('created');
                         } else {
@@ -289,10 +299,12 @@ console.log('cancel')
                 if ([undefined, null, ''].includes(startAt)) {
                     return 'Calculating...'
                 }
-                let m = parseInt(startAt.mm) + parseInt(minutes);
-                let h = parseInt(startAt.HH) + Math.trunc(m/60);
-                console.log(`m: ${m}, h: ${h}`)
-                return `${h}:${m%60}`
+                let d = new Date();
+                d.setHours(parseInt(startAt.HH));
+                d.setMinutes(parseInt(startAt.mm));
+                d.setMinutes(d.getMinutes() + parseInt(minutes));
+
+                return `${(d.getHours()<10?'0':'') + d.getHours()}:${(d.getMinutes()<10?'0':'') + d.getMinutes()}`
             }
         }
     }

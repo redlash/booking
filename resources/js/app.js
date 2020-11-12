@@ -48,6 +48,8 @@ const app = new Vue({
 
             instance.listVisible = false;
             instance.formVisible = false;
+            /* Clear bookingRecord model. */
+            instance.bookingRecord = null;
             Vue.nextTick(() => {
                 instance.formVisible = true;
             })
