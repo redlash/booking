@@ -1,7 +1,7 @@
 <template>
 
     <div class="card">
-        <div class="card-header"><h3>Booking records</h3></div>
+        <div class="card-header"><h3>Booking records ({{ pagination.total }})</h3></div>
 
         <div class="card-body">
 
@@ -112,7 +112,7 @@ export default {
             users: [],
             meetingRooms: [],
             records: [],
-            pagination: {links: []},
+            pagination: {links: [], total: 0},
             showEditForm: false,
             dates: dates,
             state: {
@@ -179,7 +179,8 @@ export default {
                         first_page_url: payload.first_page_url,
                         next_page_url: payload.next_page_url,
                         prev_page_url: payload.prev_page_url,
-                        links: payload.links
+                        links: payload.links,
+                        total: payload.total
                     }
                 })
                 .catch(err => console.log(err))
@@ -200,7 +201,11 @@ console.log(`pageChanged: ${url}`)
         },
 
         edit: function (record) {
-            this.showEditForm = true;
+
+            const vm = this;
+
+            vm.$emit('edit', record);
+
             console.log('Handle edit...')
         },
 

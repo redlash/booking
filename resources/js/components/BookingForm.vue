@@ -1,7 +1,8 @@
 <template>
 
     <div class="card">
-        <div class="card-header"><h3>Book a meeting room</h3></div>
+        <div class="card-header" v-if="[null, undefined, ''].includes(record)"><h3>Book a meeting room</h3></div>
+        <div class="card-header" v-if="![null, undefined, ''].includes(record)"><h3>Update a booking</h3></div>
         <div class="card-body">
             <form>
                 <div class="form-group row">
@@ -52,7 +53,10 @@
                 </div>
 
                 <div class="form-group row mb-2">
-                    <div class="col-md-12 offset-6">
+                    <div class="col-md-12 offset-5">
+                        <a @click="cancel" class="btn btn-dark">
+                            Go back
+                        </a>
                         <a @click="submit" class="btn btn-primary">
                             Save
                         </a>
@@ -75,14 +79,17 @@
 
         created() {
 
-            this.getMeetingRooms();
+            const vm = this;
+
+            vm.getMeetingRooms();
+            vm.populate();
         },
 
         mounted() {
-            //console.log(this.user)
+            //
         },
 
-        props: ['user'],
+        props: ['user', 'record'],
 
         components: {
             Datepicker, VueTimepicker
@@ -115,6 +122,24 @@
         },
 
         methods: {
+
+            populate: function () {
+
+                const vm = this;
+
+                if ([null, undefined, ''].includes(vm.record)) {
+                    return;
+                }
+
+                vm.state.meeting_room_id = vm.record.meeting_room_id;
+                vm.state.occupy_at = vm.record.occupy_at;
+                vm.state.start_at = {
+                    HH: null,
+                    mm: null,
+                    ss: '00'
+                };
+                vm.duration = vm.record.duration;
+            },
 
             getMeetingRooms: function () {
 
@@ -187,6 +212,18 @@
                 vm.showEndTime = true;
             },
 
+            /**
+             * Close the form and show the list.
+             *
+             * @param event
+             */
+            cancel: function (event) {
+
+                const vm = this;
+console.log('cancel')
+                vm.$emit('canceled');
+            },
+
             submit: function (event) {
 
                 let vm = this;
@@ -209,7 +246,11 @@
                 }).then(res => res.json())
                     .then(data => {
                         console.log(data);
-                        //vm.records = data;
+                        if ([null, undefined, ''].includes(vm.record)) {
+                            vm.$emit('created');
+                        } else {
+                            vm.$emit('updated', data);
+                        }
                     })
                     .catch(err => console.log(err))
             },

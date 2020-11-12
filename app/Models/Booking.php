@@ -52,6 +52,21 @@ class Booking extends Model
     ];
 
     /**
+     * Appended attributes.
+     *
+     * @var array
+     */
+    protected $appends = ['duration'];
+
+    /**
+     * Get duration in minutes.
+     */
+    public function getDurationAttribute()
+    {
+        return $this->end_at->diffInMinutes($this->start_at);
+    }
+
+    /**
      * User of the booking.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasOne

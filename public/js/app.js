@@ -1980,16 +1980,22 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
 
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   created: function created() {
-    this.getMeetingRooms();
+    var vm = this;
+    vm.getMeetingRooms();
+    vm.populate();
   },
-  mounted: function mounted() {//console.log(this.user)
+  mounted: function mounted() {//
   },
-  props: ['user'],
+  props: ['user', 'record'],
   components: {
     Datepicker: vuejs_datepicker__WEBPACK_IMPORTED_MODULE_0__["default"],
     VueTimepicker: vue2_timepicker__WEBPACK_IMPORTED_MODULE_1___default.a
@@ -2020,6 +2026,22 @@ __webpack_require__.r(__webpack_exports__);
     };
   },
   methods: {
+    populate: function populate() {
+      var vm = this;
+
+      if ([null, undefined, ''].includes(vm.record)) {
+        return;
+      }
+
+      vm.state.meeting_room_id = vm.record.meeting_room_id;
+      vm.state.occupy_at = vm.record.occupy_at;
+      vm.state.start_at = {
+        HH: null,
+        mm: null,
+        ss: '00'
+      };
+      vm.duration = vm.record.duration;
+    },
     getMeetingRooms: function getMeetingRooms() {
       var vm = this;
       fetch('/api/meeting_rooms', {
@@ -2081,6 +2103,17 @@ __webpack_require__.r(__webpack_exports__);
       var vm = this;
       vm.showEndTime = true;
     },
+
+    /**
+     * Close the form and show the list.
+     *
+     * @param event
+     */
+    cancel: function cancel(event) {
+      var vm = this;
+      console.log('cancel');
+      vm.$emit('canceled');
+    },
     submit: function submit(event) {
       var vm = this;
       event.preventDefault();
@@ -2100,7 +2133,13 @@ __webpack_require__.r(__webpack_exports__);
       }).then(function (res) {
         return res.json();
       }).then(function (data) {
-        console.log(data); //vm.records = data;
+        console.log(data);
+
+        if ([null, undefined, ''].includes(vm.record)) {
+          vm.$emit('created');
+        } else {
+          vm.$emit('updated', data);
+        }
       })["catch"](function (err) {
         return console.log(err);
       });
@@ -2239,7 +2278,8 @@ __webpack_require__.r(__webpack_exports__);
       meetingRooms: [],
       records: [],
       pagination: {
-        links: []
+        links: [],
+        total: 0
       },
       showEditForm: false,
       dates: dates,
@@ -2297,7 +2337,8 @@ __webpack_require__.r(__webpack_exports__);
           first_page_url: payload.first_page_url,
           next_page_url: payload.next_page_url,
           prev_page_url: payload.prev_page_url,
-          links: payload.links
+          links: payload.links,
+          total: payload.total
         };
       })["catch"](function (err) {
         return console.log(err);
@@ -2313,7 +2354,8 @@ __webpack_require__.r(__webpack_exports__);
       vm.getRecords(url);
     },
     edit: function edit(record) {
-      this.showEditForm = true;
+      var vm = this;
+      vm.$emit('edit', record);
       console.log('Handle edit...');
     },
     save: function save(event, record) {
@@ -38609,7 +38651,17 @@ var render = function() {
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
   return _c("div", { staticClass: "card" }, [
-    _vm._m(0),
+    [null, undefined, ""].includes(_vm.record)
+      ? _c("div", { staticClass: "card-header" }, [
+          _c("h3", [_vm._v("Book a meeting room")])
+        ])
+      : _vm._e(),
+    _vm._v(" "),
+    ![null, undefined, ""].includes(_vm.record)
+      ? _c("div", { staticClass: "card-header" }, [
+          _c("h3", [_vm._v("Update a booking")])
+        ])
+      : _vm._e(),
     _vm._v(" "),
     _c("div", { staticClass: "card-body" }, [
       _c("form", [
@@ -38797,7 +38849,17 @@ var render = function() {
         ]),
         _vm._v(" "),
         _c("div", { staticClass: "form-group row mb-2" }, [
-          _c("div", { staticClass: "col-md-12 offset-6" }, [
+          _c("div", { staticClass: "col-md-12 offset-5" }, [
+            _c(
+              "a",
+              { staticClass: "btn btn-dark", on: { click: _vm.cancel } },
+              [
+                _vm._v(
+                  "\n                        Go back\n                    "
+                )
+              ]
+            ),
+            _vm._v(" "),
             _c(
               "a",
               { staticClass: "btn btn-primary", on: { click: _vm.submit } },
@@ -38809,16 +38871,7 @@ var render = function() {
     ])
   ])
 }
-var staticRenderFns = [
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c("div", { staticClass: "card-header" }, [
-      _c("h3", [_vm._v("Book a meeting room")])
-    ])
-  }
-]
+var staticRenderFns = []
 render._withStripped = true
 
 
@@ -38841,7 +38894,11 @@ var render = function() {
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
   return _c("div", { staticClass: "card" }, [
-    _vm._m(0),
+    _c("div", { staticClass: "card-header" }, [
+      _c("h3", [
+        _vm._v("Booking records (" + _vm._s(_vm.pagination.total) + ")")
+      ])
+    ]),
     _vm._v(" "),
     _c("div", { staticClass: "card-body" }),
     _vm._v(" "),
@@ -38857,11 +38914,11 @@ var render = function() {
         _vm._v(" "),
         _vm.records.length > 0
           ? _c("div", { staticClass: "row mb-3" }, [
+              _vm._m(0),
+              _vm._v(" "),
               _vm._m(1),
               _vm._v(" "),
               _vm._m(2),
-              _vm._v(" "),
-              _vm._m(3),
               _vm._v(" "),
               _vm.user !== null
                 ? _c("div", { staticClass: "col-md-2 text-center" }, [
@@ -39266,14 +39323,6 @@ var render = function() {
   ])
 }
 var staticRenderFns = [
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c("div", { staticClass: "card-header" }, [
-      _c("h3", [_vm._v("Booking records")])
-    ])
-  },
   function() {
     var _vm = this
     var _h = _vm.$createElement
@@ -61187,6 +61236,8 @@ module.exports = function(module) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
+var _this = this;
+
 /**
  * First we will load all of this project's JavaScript dependencies which
  * includes Vue and other libraries. It is a great starting point when
@@ -61214,12 +61265,84 @@ Vue.component('booking-form', __webpack_require__(/*! ./components/BookingForm.v
  */
 
 var app = new Vue({
-  el: '#app' // data: {
-  //     user: null,
-  //     listVisible: true,
-  //     formVisible: false
-  // },
+  el: '#app',
+  data: {
+    listExists: true,
+    listVisible: true,
+    formVisible: false,
+    bookingRecord: null
+  },
+  methods: {
+    /**
+     * Show create form, remove list.
+     *
+     * @param event
+     */
+    showNewForm: function showNewForm(event) {
+      var instance = this;
+      instance.listExists = false;
+      instance.formVisible = true;
+    },
 
+    /**
+     * Show edit form, hide list.
+     *
+     * @param event
+     * @param record
+     */
+    showEditForm: function showEditForm(record) {
+      var instance = this;
+      console.log("showEditForm:");
+      console.log(record);
+      console.log(event);
+      instance.listExists = true;
+      instance.listVisible = false;
+      instance.formVisible = true;
+      instance.bookingRecord = record;
+    },
+
+    /**
+     * After a booking record is created, render the list and
+     * hide the form.
+     *
+     * @param event
+     */
+    handleCreated: function handleCreated(event) {
+      var instance = this;
+      instance.listExists = true;
+      instance.formVisible = false;
+    },
+
+    /**
+     * After a booking record is updated, show the hidden list and
+     * update the record.
+     *
+     * @param event
+     * @param record
+     */
+    handleUpdated: function handleUpdated(event, record) {
+      var instance = _this;
+      instance.listExists = true;
+      instance.listVisible = true;
+      instance.formVisible = false;
+      instance.bookingRecord = null;
+    },
+
+    /**
+     * Close the form and show the list.
+     *
+     * @param event
+     */
+    handleCanceled: function handleCanceled(event) {
+      var instance = _this;
+      console.log("handleCanceled:");
+      Vue.nextTick(function () {
+        instance.formVisible = false;
+        instance.listExists = true;
+        instance.listVisible = true;
+      });
+    }
+  }
 });
 
 /***/ }),

@@ -30,9 +30,89 @@ Vue.component('booking-form', require('./components/BookingForm.vue').default);
 
 const app = new Vue({
     el: '#app',
-    // data: {
-    //     user: null,
-    //     listVisible: true,
-    //     formVisible: false
-    // },
+    data: {
+        listExists: true,
+        listVisible: true,
+        formVisible: false,
+        bookingRecord: null
+    },
+    methods: {
+
+        /**
+         * Show create form, remove list.
+         *
+         * @param event
+         */
+        showNewForm: function (event) {
+
+            const instance = this;
+
+            instance.listExists = false;
+            instance.formVisible = true;
+        },
+
+        /**
+         * Show edit form, hide list.
+         *
+         * @param event
+         * @param record
+         */
+        showEditForm: function (record) {
+
+            const instance = this;
+console.log(`showEditForm:`); console.log(record);console.log(event);
+            instance.listExists = true;
+            instance.listVisible = false;
+            instance.formVisible = true;
+            instance.bookingRecord = record;
+        },
+
+        /**
+         * After a booking record is created, render the list and
+         * hide the form.
+         *
+         * @param event
+         */
+        handleCreated: function (event) {
+
+            const instance = this;
+
+            instance.listExists = true;
+            instance.formVisible = false;
+        },
+
+        /**
+         * After a booking record is updated, show the hidden list and
+         * update the record.
+         *
+         * @param event
+         * @param record
+         */
+        handleUpdated: (event, record) => {
+
+            const instance = this;
+
+            instance.listExists = true;
+            instance.listVisible = true;
+            instance.formVisible = false;
+            instance.bookingRecord = null;
+        },
+
+        /**
+         * Close the form and show the list.
+         *
+         * @param event
+         */
+        handleCanceled: event => {
+
+            const instance = this;
+            console.log(`handleCanceled:`);
+
+            Vue.nextTick(() => {
+                instance.formVisible = false;
+                instance.listExists = true;
+                instance.listVisible = true;
+            })
+        }
+    }
 });
