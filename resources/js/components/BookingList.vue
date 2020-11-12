@@ -337,7 +337,7 @@ console.log(`pageChanged: ${url}`)
                             vm.errorVisible = true;
                             return;
                         }
-                        vm.records = payload.data;
+                        vm.records = payload.data.data;
                     })
                     .catch(err => {
                         vm.error = err;

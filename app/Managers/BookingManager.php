@@ -73,6 +73,11 @@ class BookingManager
         ];
 
         $this->validate($data, $rules, trans('validation'));
+        $this->validateTime($data['start_at']);
+        $this->validateDoubleBook(
+            $data['meeting_room_id'], $data['occupy_at'],
+            $data['start_at'], $data['end_at']
+        );
 
         return Booking::insert(
             [
@@ -113,6 +118,9 @@ class BookingManager
         ];
 
         $this->validate($data, $rules, trans('validation'));
+        if (isset($data['start_at'])) {
+            $this->validateTime($data['start_at']);
+        }
 
         foreach($data as $key => $value) {
 

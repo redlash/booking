@@ -2189,6 +2189,7 @@ function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
         console.log(data);
 
         if ('error' in data) {
+          data.error = data.error.includes('Integrity constraint') ? 'Sorry, this room has been booked.' : data.error;
           vm.error = data.error;
           vm.errorVisible = true;
           return;
@@ -2534,7 +2535,7 @@ __webpack_require__.r(__webpack_exports__);
             return;
           }
 
-          vm.records = payload.data;
+          vm.records = payload.data.data;
         })["catch"](function (err) {
           vm.error = err;
           vm.errorVisible = true;
@@ -38986,7 +38987,7 @@ var render = function() {
             [_vm._v("Duration")]
           ),
           _vm._v(" "),
-          _c("div", { staticClass: "col-md-3" }, [
+          _c("div", { staticClass: "col-md-2" }, [
             _c(
               "select",
               {

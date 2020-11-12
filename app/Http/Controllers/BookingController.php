@@ -6,6 +6,7 @@ use App\Managers\BookingManager;
 use App\Models\Booking;
 use App\Http\Resources\Booking as BookingResource;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 
 class BookingController extends Controller
@@ -41,13 +42,21 @@ class BookingController extends Controller
 
             $results = $service->getAll();
 
-        } catch (\Exception $exception) {
+        } catch (QueryException $exception) {
 
             return response(
-                ['error' => $exception->getMessage()],
+                ['error' => 'Sorry, this room has been booked.'],
                 400
             );
+
         }
+//        catch (\Exception $exception) {
+//
+//            return response(
+//                ['error' => $exception->getMessage()],
+//                400
+//            );
+//        }
 
         return response($results, 200);
     }
@@ -187,7 +196,7 @@ class BookingController extends Controller
 
         return response(
             [
-                'message' => 'You have cancel the booking successfully.',
+                'message' => 'You have canceled the booking successfully.',
                 'data' => $service->getAll()
             ],
             200

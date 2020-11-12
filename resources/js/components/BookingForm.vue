@@ -57,7 +57,7 @@
 
                 <label for="end_at" class="col-md-3 col-form-label text-md-right">Duration</label>
 
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <select v-model="duration"
                             id="end_at" class="form-control" name="end_at">
                         <option value="">-- Please select --</option>
@@ -276,6 +276,9 @@ console.log('cancel')
                     .then(data => {
                         console.log(data);
                         if ('error' in data) {
+                            data.error = data.error.includes('Integrity constraint')
+                                ? 'Sorry, this room has been booked.'
+                                : data.error;
                             vm.error = data.error;
                             vm.errorVisible = true;
                             return;
