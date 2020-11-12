@@ -67,18 +67,18 @@
             <div class="row mb-3" v-if="records.length > 0">
                 <div class="col-md-3 text-center">
                     <span><a @click="sortAsc('date')"><strong>&#94;</strong></a></span>
-                    &nbsp;&nbsp;&nbsp;<strong>Date</strong>&nbsp;&nbsp;&nbsp;
-                    <span style="font-size: 24px"><a @click="sortDesc('date')">&#8964;</a></span>
+                    &nbsp;&nbsp;&nbsp;<strong>Date</strong>&nbsp;&nbsp;
+                    <span style="font-size: 24px"><a @click="sortDesc('date')"><strong>&#8964;</strong></a></span>
                 </div>
                 <div class="col-md-3 text-center">
                     <span><a @click="sortAsc('user')"><strong>&#94;</strong></a></span>
-                    &nbsp;&nbsp;&nbsp;<strong>Owner</strong>&nbsp;&nbsp;&nbsp;
-                    <span style="font-size: 24px"><a @click="sortDesc('user')">&#8964;</a></span>
+                    &nbsp;&nbsp;&nbsp;<strong>Owner</strong>&nbsp;&nbsp;
+                    <span style="font-size: 24px"><a @click="sortDesc('user')"><strong>&#8964;</strong></a></span>
                 </div>
                 <div class="col-md-3 text-center">
                     <span><a @click="sortAsc('meeting_room')"><strong>&#94;</strong></a></span>
-                    &nbsp;&nbsp;&nbsp;<strong>Meeting room</strong>&nbsp;&nbsp;&nbsp;
-                    <span style="font-size: 24px"><a @click="sortDesc('meeting_room')">&#8964;</a></span>
+                    &nbsp;&nbsp;&nbsp;<strong>Meeting room</strong>&nbsp;&nbsp;
+                    <span style="font-size: 24px"><a @click="sortDesc('meeting_room')"><strong>&#8964;</strong></a></span>
                 </div>
                 <div class="col-md-3 text-center" v-if="![null, undefined, ''].includes(user)"><strong>Actions</strong></div>
             </div>
@@ -283,6 +283,9 @@ console.log(`pageChanged: ${url}`)
                 return;
             }
 
+            vm.errorVisible = false;
+            vm.error = '';
+
             fetch(`api/booking/${record.id}`, {
                 method: 'put',
                 mode: 'cors',
@@ -297,7 +300,10 @@ console.log(`pageChanged: ${url}`)
                     console.log(data);
                     vm.records = data;
                 })
-                .catch(err => console.log(err))
+                .catch(err => {
+                    vm.error = err;
+                    vm.errorVisible = true;
+                })
         },
 
         cancel: function (record) {
@@ -309,6 +315,11 @@ console.log(`pageChanged: ${url}`)
             }
 
             if (confirm('Are you sure you want to cancel this booking?')) {
+
+                vm.errorVisible = false;
+                vm.error = '';
+                vm.messageVisible = false;
+                vm.message = '';
 
                 fetch(`api/booking/${record.id}`, {
                     method: 'delete',
@@ -324,7 +335,8 @@ console.log(`pageChanged: ${url}`)
                         vm.records = payload.data;
                     })
                     .catch(err => {
-                        //
+                        vm.error = err;
+                        vm.errorVisible = true;
                     })
             }
         },

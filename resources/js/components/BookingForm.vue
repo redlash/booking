@@ -150,10 +150,14 @@
                 }
 
                 vm.state.meeting_room_id = vm.record.meeting_room_id;
-                vm.state.occupy_at = vm.record.occupy_at;
+                /* Transform occupy_at from 'd/m/Y' to Date. */
+                let [d, m, y] = vm.record.occupy_at.split('/').map(e => { return parseInt(e);});
+                vm.state.occupy_at = new Date(y, m, d);
+                /* Transform start_at to string. */
+                let [h, mm] = vm.record.start_at.split(':');
                 vm.state.start_at = {
-                    HH: null,
-                    mm: null,
+                    HH: h,
+                    mm: mm,
                     ss: '00'
                 };
                 vm.duration = vm.record.duration;
@@ -198,7 +202,9 @@
                 const vm = this;
 
                 let d = vm.state.occupy_at;
-                d = `${d.getFullYear()}${d.getMonth()+1}${d.getDate()}`;
+
+                console.log('dateChanged');console.log(d);
+                d = d.split('/').join('');
                 console.log(d);
 
                 if (vm.state.meeting_room_id === '') {
@@ -218,8 +224,6 @@
                     .then(data => {
                         console.log(data);
                         vm.bookingRecords = data;
-                        vm.showRoomList = true;
-                        vm.timeDisabled = false;
                     })
             },
 
@@ -240,6 +244,7 @@ console.log('cancel')
                 let vm = this;
 
                 event.preventDefault();
+
                 const payload = Object.assign({}, vm.state);
                 payload.occupy_at = `${vm.state.occupy_at.getFullYear()}-${vm.state.occupy_at.getMonth()+1}-${vm.state.occupy_at.getDate()}`;
                 payload.start_at = `${vm.state.start_at.HH}:${vm.state.start_at.mm}`;
@@ -247,8 +252,15 @@ console.log('cancel')
                 vm.messageVisible = false;
                 vm.errorVisible = false;
 
-                fetch(`api/booking`, {
-                    method: 'post',
+                let endpoint = `api/booking`,
+                    method = 'post';
+                if (![null, undefined, ''].includes(vm.record)) {
+                    endpoint = `api/booking/${vm.record.id}`;
+                    method = 'put';
+                }
+
+                fetch(endpoint, {
+                    method: method,
                     mode: 'cors',
                     headers: {
                         'Authorization': `Bearer ${vm.user.api_token}`,
@@ -266,6 +278,7 @@ console.log('cancel')
                         }
                     })
                     .catch(err => {
+                        console.log(err);
                         vm.error = err;
                         vm.errorVisible = true;
                     })

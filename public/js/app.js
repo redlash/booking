@@ -1913,6 +1913,18 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var vue2_timepicker__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(vue2_timepicker__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var vue2_timepicker_dist_VueTimepicker_css__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! vue2-timepicker/dist/VueTimepicker.css */ "./node_modules/vue2-timepicker/dist/VueTimepicker.css");
 /* harmony import */ var vue2_timepicker_dist_VueTimepicker_css__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(vue2_timepicker_dist_VueTimepicker_css__WEBPACK_IMPORTED_MODULE_2__);
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _iterableToArrayLimit(arr, i) { if (typeof Symbol === "undefined" || !(Symbol.iterator in Object(arr))) return; var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
 //
 //
 //
@@ -2052,10 +2064,27 @@ __webpack_require__.r(__webpack_exports__);
       }
 
       vm.state.meeting_room_id = vm.record.meeting_room_id;
-      vm.state.occupy_at = vm.record.occupy_at;
+      /* Transform occupy_at from 'd/m/Y' to Date. */
+
+      var _vm$record$occupy_at$ = vm.record.occupy_at.split('/').map(function (e) {
+        return parseInt(e);
+      }),
+          _vm$record$occupy_at$2 = _slicedToArray(_vm$record$occupy_at$, 3),
+          d = _vm$record$occupy_at$2[0],
+          m = _vm$record$occupy_at$2[1],
+          y = _vm$record$occupy_at$2[2];
+
+      vm.state.occupy_at = new Date(y, m, d);
+      /* Transform start_at to string. */
+
+      var _vm$record$start_at$s = vm.record.start_at.split(':'),
+          _vm$record$start_at$s2 = _slicedToArray(_vm$record$start_at$s, 2),
+          h = _vm$record$start_at$s2[0],
+          mm = _vm$record$start_at$s2[1];
+
       vm.state.start_at = {
-        HH: null,
-        mm: null,
+        HH: h,
+        mm: mm,
         ss: '00'
       };
       vm.duration = vm.record.duration;
@@ -2093,7 +2122,9 @@ __webpack_require__.r(__webpack_exports__);
     dateChanged: function dateChanged(event) {
       var vm = this;
       var d = vm.state.occupy_at;
-      d = "".concat(d.getFullYear()).concat(d.getMonth() + 1).concat(d.getDate());
+      console.log('dateChanged');
+      console.log(d);
+      d = d.split('/').join('');
       console.log(d);
 
       if (vm.state.meeting_room_id === '') {
@@ -2113,8 +2144,6 @@ __webpack_require__.r(__webpack_exports__);
       }).then(function (data) {
         console.log(data);
         vm.bookingRecords = data;
-        vm.showRoomList = true;
-        vm.timeDisabled = false;
       });
     },
 
@@ -2137,8 +2166,16 @@ __webpack_require__.r(__webpack_exports__);
       payload.end_at = vm.getEndAt(vm.state.start_at, vm.duration);
       vm.messageVisible = false;
       vm.errorVisible = false;
-      fetch("api/booking", {
-        method: 'post',
+      var endpoint = "api/booking",
+          method = 'post';
+
+      if (![null, undefined, ''].includes(vm.record)) {
+        endpoint = "api/booking/".concat(vm.record.id);
+        method = 'put';
+      }
+
+      fetch(endpoint, {
+        method: method,
         mode: 'cors',
         headers: {
           'Authorization': "Bearer ".concat(vm.user.api_token),
@@ -2157,6 +2194,7 @@ __webpack_require__.r(__webpack_exports__);
           vm.$emit('updated', data);
         }
       })["catch"](function (err) {
+        console.log(err);
         vm.error = err;
         vm.errorVisible = true;
       });
@@ -2437,6 +2475,8 @@ __webpack_require__.r(__webpack_exports__);
         return;
       }
 
+      vm.errorVisible = false;
+      vm.error = '';
       fetch("api/booking/".concat(record.id), {
         method: 'put',
         mode: 'cors',
@@ -2452,7 +2492,8 @@ __webpack_require__.r(__webpack_exports__);
         console.log(data);
         vm.records = data;
       })["catch"](function (err) {
-        return console.log(err);
+        vm.error = err;
+        vm.errorVisible = true;
       });
     },
     cancel: function cancel(record) {
@@ -2463,6 +2504,10 @@ __webpack_require__.r(__webpack_exports__);
       }
 
       if (confirm('Are you sure you want to cancel this booking?')) {
+        vm.errorVisible = false;
+        vm.error = '';
+        vm.messageVisible = false;
+        vm.message = '';
         fetch("api/booking/".concat(record.id), {
           method: 'delete',
           mode: 'cors',
@@ -2476,7 +2521,9 @@ __webpack_require__.r(__webpack_exports__);
         }).then(function (payload) {
           console.log(payload);
           vm.records = payload.data;
-        })["catch"](function (err) {//
+        })["catch"](function (err) {
+          vm.error = err;
+          vm.errorVisible = true;
         });
       }
     },
@@ -39336,7 +39383,7 @@ var render = function() {
                 ]),
                 _vm._v("\n                   "),
                 _c("strong", [_vm._v("Date")]),
-                _vm._v("   \n                "),
+                _vm._v("  \n                "),
                 _c("span", { staticStyle: { "font-size": "24px" } }, [
                   _c(
                     "a",
@@ -39347,7 +39394,7 @@ var render = function() {
                         }
                       }
                     },
-                    [_vm._v("⌄")]
+                    [_c("strong", [_vm._v("⌄")])]
                   )
                 ])
               ]),
@@ -39368,7 +39415,7 @@ var render = function() {
                 ]),
                 _vm._v("\n                   "),
                 _c("strong", [_vm._v("Owner")]),
-                _vm._v("   \n                "),
+                _vm._v("  \n                "),
                 _c("span", { staticStyle: { "font-size": "24px" } }, [
                   _c(
                     "a",
@@ -39379,7 +39426,7 @@ var render = function() {
                         }
                       }
                     },
-                    [_vm._v("⌄")]
+                    [_c("strong", [_vm._v("⌄")])]
                   )
                 ])
               ]),
@@ -39400,7 +39447,7 @@ var render = function() {
                 ]),
                 _vm._v("\n                   "),
                 _c("strong", [_vm._v("Meeting room")]),
-                _vm._v("   \n                "),
+                _vm._v("  \n                "),
                 _c("span", { staticStyle: { "font-size": "24px" } }, [
                   _c(
                     "a",
@@ -39411,7 +39458,7 @@ var render = function() {
                         }
                       }
                     },
-                    [_vm._v("⌄")]
+                    [_c("strong", [_vm._v("⌄")])]
                   )
                 ])
               ]),
