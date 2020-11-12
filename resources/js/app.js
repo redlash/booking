@@ -31,7 +31,6 @@ Vue.component('booking-form', require('./components/BookingForm.vue').default);
 const app = new Vue({
     el: '#app',
     data: {
-        listExists: true,
         listVisible: true,
         formVisible: false,
         bookingRecord: null
@@ -47,8 +46,11 @@ const app = new Vue({
 
             const instance = this;
 
-            instance.listExists = false;
-            instance.formVisible = true;
+            instance.listVisible = false;
+            instance.formVisible = false;
+            Vue.nextTick(() => {
+                instance.formVisible = true;
+            })
         },
 
         /**
@@ -60,11 +62,15 @@ const app = new Vue({
         showEditForm: function (record) {
 
             const instance = this;
-console.log(`showEditForm:`); console.log(record);console.log(event);
-            instance.listExists = true;
-            instance.listVisible = false;
-            instance.formVisible = true;
+
+console.log(`showEditForm:`); console.log(record);
             instance.bookingRecord = record;
+            instance.listVisible = false;
+            instance.formVisible = false;
+
+            Vue.nextTick(() => {
+                instance.formVisible = true;
+            })
         },
 
         /**
@@ -77,8 +83,11 @@ console.log(`showEditForm:`); console.log(record);console.log(event);
 
             const instance = this;
 
-            instance.listExists = true;
+            instance.listVisible = false;
             instance.formVisible = false;
+            Vue.nextTick(() => {
+                instance.listVisible = true;
+            })
         },
 
         /**
@@ -88,14 +97,17 @@ console.log(`showEditForm:`); console.log(record);console.log(event);
          * @param event
          * @param record
          */
-        handleUpdated: (event, record) => {
+        handleUpdated: function (event, record) {
 
             const instance = this;
 
-            instance.listExists = true;
-            instance.listVisible = true;
+            instance.listVisible = false;
             instance.formVisible = false;
             instance.bookingRecord = null;
+
+            Vue.nextTick(() => {
+                instance.listVisible = true;
+            })
         },
 
         /**
@@ -103,14 +115,15 @@ console.log(`showEditForm:`); console.log(record);console.log(event);
          *
          * @param event
          */
-        handleCanceled: event => {
+        handleCanceled: function (event) {
 
             const instance = this;
             console.log(`handleCanceled:`);
 
+            instance.formVisible = false;
+            instance.listVisible = false;
+
             Vue.nextTick(() => {
-                instance.formVisible = false;
-                instance.listExists = true;
                 instance.listVisible = true;
             })
         }

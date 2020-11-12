@@ -58,6 +58,16 @@ class Booking extends Model
      */
     protected $appends = ['duration'];
 
+    public function toArray()
+    {
+        $data = parent::toArray();
+        $data['occupy_at'] = $this->occupy_at->format('d/m/Y');
+        $data['start_at'] = $this->start_at->format('H:i');
+        $data['end_at'] = $this->end_at->format('H:i');
+
+        return $data;
+    }
+
     /**
      * Get duration in minutes.
      */

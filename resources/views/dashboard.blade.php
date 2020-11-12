@@ -2,24 +2,23 @@
 
 @section('content')
     <div class="container">
-        <div class="row justify-content-center mb-3"
-             v-if="listExists" v-show="listVisible">
+        <div class="row justify-content-center mb-3">
             <div class="col-md-12">
-                <booking-list :user="{{ auth()->user() }}" v-on:edit="showEditForm"></booking-list>
+                @if (auth()->user() !== null)
+                <booking-list  v-if="listVisible" :user="{{ auth()->user() }}"
+                               v-on:create="showNewForm"
+                               v-on:edit="showEditForm">
+                </booking-list>
+                @else
+                    <booking-list></booking-list>
+                @endif
             </div>
         </div>
 
         @if (auth()->user() !== null)
-            <div class="row justify-content-center mt-3"
-                 v-if="listExists" v-show="listVisible">
+            <div class="row justify-content-center mb-3">
                 <div class="col-md-12">
-                    <a v-on:click="showNewForm" class="btn btn-primary">Book a meeting room</a>
-                </div>
-            </div>
-
-            <div class="row justify-content-center mb-3" v-if="formVisible === true">
-                <div class="col-md-12">
-                    <booking-form :user="{{ auth()->user() }}"
+                    <booking-form  v-if="formVisible" :user="{{ auth()->user() }}"
                                   :record="bookingRecord"
                                   v-on:created="handleCreated"
                                   v-on:updated="handleUpdated"

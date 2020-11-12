@@ -86,9 +86,6 @@ class BookingController extends Controller
             );
         }
 
-//        $user = User::findOrFail($id);
-//        $bookings = $user->bookings->orderBy('start_at')->paginate(5);
-
         return response($results, 200);
         //return response(BookingResource::collection($bookings), 200);
     }
@@ -165,15 +162,6 @@ class BookingController extends Controller
             ],
             200
         );
-
-//        $booking = Booking::findOrFail($id);
-//
-//        foreach($request->all() as $key => $value) {
-//            $booking->$key = $value;
-//        }
-//        $booking->save();
-//
-//        return $this->index();
     }
 
     /**
@@ -204,16 +192,5 @@ class BookingController extends Controller
             ],
             200
         );
-
-//        $booking = Booking::findOrFail($id);
-//        $booking->delete();
-//
-//        return response(
-//            [
-//                'message' => 'You have canceled your booking.',
-//                'data' => $this->index()
-//            ],
-//            200
-//        );
     }
 }

@@ -1,52 +1,36 @@
 <template>
-
     <div class="card">
-        <div class="card-header"><h3>Booking records ({{ pagination.total }})</h3></div>
-
-        <div class="card-body">
-
+        <div class="card-header container-fluid">
+            <div class="row">
+                <div class="col-md-9">
+                    <h3>Booking records ({{ pagination.total }})</h3>
+                </div>
+                <div class="col-md-3 float-right" v-if="![null, undefined, ''].includes(user)">
+                    <a class="btn btn-primary" @click="create">Book a meeting room</a>
+                </div>
+            </div>
         </div>
 
         <div class="card-body">
 
             <h4 class="text-info text-center" v-if="records.length === 0">No booking records.</h4>
 
-            <div class="row mb-3" v-if="records.length > 0">
-                <div class="col-md-4 text-center">
-                    <i class="glyphicon-arrow-up"></i><strong>Date</strong><i class="glyphicon-arrow-down"></i>
-                </div>
-                <div class="col-md-4 text-center"><strong>Owner</strong></div>
-                <div class="col-md-2 text-center"><strong>Meeting room</strong></div>
-                <div class="col-md-2 text-center" v-if="user !== null"><strong>Actions</strong></div>
-            </div>
-
-            <div class="row mb-2"  v-if="records.length > 0"
-                 v-for="record in records" :id="'booking-' + record.id">
-                <div class="col-md-4">{{ record.occupy_at }} {{ record.start_at }}-{{ record.end_at }}</div>
-                <div class="col-md-4">{{ record.user.name }}</div>
-                <div class="col-md-2">{{ record.meeting_room.name }}</div>
-                <div class="col-md-2" v-if="user !== null">
-                    <a class="btn btn-info mr-1" @click="edit(record)">Edit</a>
-                    <a class="btn btn-danger" @click="cancel(record)">Cancel</a>
+            <div class="form-group row" v-if="errorVisible">
+                <div class="col-md-10 offset-1">
+                    <div class="alert alert-danger" role="alert">
+                        <span class="sr-only">Error:</span>
+                        {{ error }}
+                    </div>
                 </div>
             </div>
 
-            <div class="row mb-2" id="pagination-container" v-if="records.length > 0 && pagination.links.length > 3">
-                <nav aria-label="pagination">
-                    <ul class="pagination">
-                        <li :class="{ 'page-item': true, disabled: pagination.current_page === 1 }">
-                            <a class="page-link" @click="pageChanged($event, pagination.prev_page_url)">Previous</a>
-                        </li>
-                        <li v-for="link in pagination.links"
-                            :class="{ 'page-item': true, active: link.active }"
-                            v-if="['Previous', 'Next'].includes(link.label) === false">
-                            <a class="page-link" @click="pageChanged($event, link.url)">{{ link.label }}</a>
-                        </li>
-                        <li :class="{ 'page-item': true, disabled: pagination.current_page === pagination.last_page }">
-                            <a class="page-link" @click="pageChanged($event, pagination.next_page_url)">Next</a>
-                        </li>
-                    </ul>
-                </nav>
+            <div class="form-group row" v-if="messageVisible">
+                <div class="col-md-10 offset-1">
+                    <div class="alert alert-success" role="alert">
+                        <span class="sr-only">Success:</span>
+                        {{ message }}
+                    </div>
+                </div>
             </div>
 
             <div class="row mt-3" id="filters-container" v-if="records.length > 0 || hasFilters()">
@@ -54,7 +38,7 @@
                     <select v-model="state.filters.user_id" @change="filterChanged"
                             id="filter_by_user" class="form-control" name="filter_by_user">
                         <option value="">-- Filter by User --</option>
-                        <option v-for="user in users" :value="user.id">{{ user.name }}</option>
+                        <option v-for="usr in users" :value="usr.id">{{ usr.name }}</option>
                     </select>
                 </div>
                 <div class="col-md-4">
@@ -79,6 +63,56 @@
                     </select>
                 </div>
             </div>
+            <hr>
+            <div class="row mb-3" v-if="records.length > 0">
+                <div class="col-md-3 text-center">
+                    <span><a @click="sortAsc('date')"><strong>&#94;</strong></a></span>
+                    &nbsp;&nbsp;&nbsp;<strong>Date</strong>&nbsp;&nbsp;&nbsp;
+                    <span style="font-size: 24px"><a @click="sortDesc('date')">&#8964;</a></span>
+                </div>
+                <div class="col-md-3 text-center">
+                    <span><a @click="sortAsc('user')"><strong>&#94;</strong></a></span>
+                    &nbsp;&nbsp;&nbsp;<strong>Owner</strong>&nbsp;&nbsp;&nbsp;
+                    <span style="font-size: 24px"><a @click="sortDesc('user')">&#8964;</a></span>
+                </div>
+                <div class="col-md-3 text-center">
+                    <span><a @click="sortAsc('meeting_room')"><strong>&#94;</strong></a></span>
+                    &nbsp;&nbsp;&nbsp;<strong>Meeting room</strong>&nbsp;&nbsp;&nbsp;
+                    <span style="font-size: 24px"><a @click="sortDesc('meeting_room')">&#8964;</a></span>
+                </div>
+                <div class="col-md-3 text-center" v-if="![null, undefined, ''].includes(user)"><strong>Actions</strong></div>
+            </div>
+            <hr>
+
+            <div class="row mb-2"  v-if="records.length > 0"
+                 v-for="record in records" :id="'booking-' + record.id">
+                <div class="col-md-3 text-center">{{ record.occupy_at }} ({{ record.start_at }}-{{ record.end_at }})</div>
+                <div class="col-md-3 text-center">{{ record.user.name }}</div>
+                <div class="col-md-3 text-center">{{ record.meeting_room.name }}</div>
+                <div class="col-md-3 text-center" v-if="![null, undefined, ''].includes(user) && record.user.id === user.id">
+                    <a class="btn btn-info mr-1" @click="edit(record)">Edit</a>
+                    <a class="btn btn-danger" @click="cancel(record)">Cancel</a>
+                </div>
+            </div>
+            <hr>
+
+            <div class="row justify-content-center mt-3" id="pagination-container" v-if="records.length > 0 && pagination.links.length > 3">
+                <nav aria-label="pagination">
+                    <ul class="pagination">
+                        <li :class="{ 'page-item': true, disabled: pagination.current_page === 1 }">
+                            <a class="page-link" @click="pageChanged($event, pagination.prev_page_url)">Previous</a>
+                        </li>
+                        <li v-for="link in pagination.links"
+                            :class="{ 'page-item': true, active: link.active }"
+                            v-if="['Previous', 'Next'].includes(link.label) === false">
+                            <a class="page-link" @click="pageChanged($event, link.url)">{{ link.label }}</a>
+                        </li>
+                        <li :class="{ 'page-item': true, disabled: pagination.current_page === pagination.last_page }">
+                            <a class="page-link" @click="pageChanged($event, pagination.next_page_url)">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
 
         </div>
     </div>
@@ -89,9 +123,11 @@ export default {
 
     created() {
 
-        this.getRecords();
-        this.getMeetingRooms();
-        this.getUsers();
+        const vm = this;
+
+        vm.getRecords();
+        vm.getMeetingRooms();
+        vm.getUsers();
     },
 
     mounted() {
@@ -113,7 +149,6 @@ export default {
             meetingRooms: [],
             records: [],
             pagination: {links: [], total: 0},
-            showEditForm: false,
             dates: dates,
             state: {
                 filters:{
@@ -122,8 +157,12 @@ export default {
                     date_from: '',
                     date_to: ''
                 },
-                sort_by: {}
-            }
+                sort_by: ''
+            },
+            errorVisible: false,
+            messageVisible: false,
+            message: '',
+            error: ''
         }
     },
 
@@ -200,6 +239,33 @@ console.log(`pageChanged: ${url}`)
             vm.getRecords(url)
         },
 
+        sortDesc: function (param) {
+
+            const vm = this;
+
+            vm.state.sort_by = `sort_by=${param}.desc`;
+            console.log(`sortDesc: ${param}`)
+            vm.getRecords();
+        },
+
+        sortAsc: function (param) {
+
+            const vm = this;
+
+            vm.state.sort_by = `sort_by=${param}.asc`;
+            console.log(`sortAsc: ${param}`)
+            vm.getRecords();
+        },
+
+        create: function (event) {
+
+            const vm = this;
+
+            vm.$emit('create');
+
+            console.log('Handle create...')
+        },
+
         edit: function (record) {
 
             const vm = this;
@@ -229,7 +295,7 @@ console.log(`pageChanged: ${url}`)
             }).then(res => res.json())
                 .then(data => {
                     console.log(data);
-                    //vm.records = data;
+                    vm.records = data;
                 })
                 .catch(err => console.log(err))
         },
@@ -243,6 +309,7 @@ console.log(`pageChanged: ${url}`)
             }
 
             if (confirm('Are you sure you want to cancel this booking?')) {
+
                 fetch(`api/booking/${record.id}`, {
                     method: 'delete',
                     mode: 'cors',
@@ -256,7 +323,9 @@ console.log(`pageChanged: ${url}`)
                         console.log(payload);
                         vm.records = payload.data;
                     })
-                    .catch(err => console.log(err))
+                    .catch(err => {
+                        //
+                    })
             }
         },
 
@@ -270,6 +339,7 @@ console.log(`pageChanged: ${url}`)
             const vm = this;
 
             let params = '';
+            /* Append filter params. */
             for (const key in vm.state.filters) {
 
                 if (['', null].includes(vm.state.filters[key])) {
@@ -282,6 +352,11 @@ console.log(`pageChanged: ${url}`)
                 console.log(params);
             }
 
+            /* Append sorting params. */
+            params = params.length === 0
+                ? `${vm.state.sort_by}`
+                : `${params}&${vm.state.sort_by}`;
+            console.log(`getParams: ${params}`);
             return params;
         },
 

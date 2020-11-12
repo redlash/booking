@@ -1,72 +1,87 @@
+
 <template>
-
-    <div class="card">
-        <div class="card-header" v-if="[null, undefined, ''].includes(record)"><h3>Book a meeting room</h3></div>
-        <div class="card-header" v-if="![null, undefined, ''].includes(record)"><h3>Update a booking</h3></div>
-        <div class="card-body">
-            <form>
-                <div class="form-group row">
-                    <label for="meeting_room" class="col-md-2 col-form-label text-md-right">Select a meeting room</label>
-
-                    <div class="col-md-4">
-                        <select v-model="state.meeting_room_id" @change="meetingRoomChanged"
-                                id="meeting_room" class="form-control" name="meeting_room" value="" required>
-                            <option value="">-- Please select --</option>
-                            <option v-for="meetingRoom in meetingRooms" :value="meetingRoom.id">{{ meetingRoom.name }}</option>
-                        </select>
-                    </div>
-
-                    <label for="date" class="col-md-2 col-form-label text-md-right">Please select a date</label>
-
-                    <div class="col-md-4">
-                        <datepicker name="date" id="date"
-                                v-model="state.occupy_at"
-                                    @selected="dateChanged"></datepicker>
+<div class="card">
+    <div class="card-header" v-if="[null, undefined, ''].includes(record)"><h3>Book a meeting room</h3></div>
+    <div class="card-header" v-if="![null, undefined, ''].includes(record)"><h3>Update a booking</h3></div>
+    <div class="card-body">
+        <form>
+            <div class="form-group row" v-if="errorVisible">
+                <div class="col-md-10 offset-1">
+                    <div class="alert alert-danger" role="alert">
+                        <span class="sr-only">Error:</span>
+                        {{ error }}
                     </div>
                 </div>
+            </div>
 
-                <div class="form-group row">
-                    <label for="start_at" class="col-md-2 col-form-label text-md-right">Time</label>
-
-                    <div class="col-md-4">
-                        <vue-timepicker id="start_at"
-                                        :hour-range="[[8, 17]]"
-                                        :minute-interval="15"
-                                        v-model="state.start_at" @change="startTimeChanged">
-
-                        </vue-timepicker>
-                    </div>
-
-
-
-                    <label for="end_at" class="col-md-2 col-form-label text-md-right">Duration</label>
-
-                    <div class="col-md-4">
-                        <select v-model="duration"
-                                id="end_at" class="form-control" name="end_at">
-                            <option value="">-- Please select --</option>
-                            <option value="30">30 Minutes</option>
-                            <option value="60">60 Minutes</option>
-                        </select>
-                    </div>
-
-                </div>
-
-                <div class="form-group row mb-2">
-                    <div class="col-md-12 offset-5">
-                        <a @click="cancel" class="btn btn-dark">
-                            Go back
-                        </a>
-                        <a @click="submit" class="btn btn-primary">
-                            Save
-                        </a>
+            <div class="form-group row" v-if="messageVisible">
+                <div class="col-md-10 offset-1">
+                    <div class="alert alert-success" role="alert">
+                        <span class="sr-only">Success:</span>
+                        {{ message }}
                     </div>
                 </div>
-            </form>
+            </div>
 
-        </div>
+            <div class="form-group row">
+                <label for="meeting_room" class="col-md-3 col-form-label text-md-right">Select a meeting room</label>
+
+                <div class="col-md-3">
+                    <select v-model="state.meeting_room_id" @change="meetingRoomChanged"
+                            id="meeting_room" class="form-control" name="meeting_room" value="" required>
+                        <option value="">-- Please select --</option>
+                        <option v-for="meetingRoom in meetingRooms" :value="meetingRoom.id">{{ meetingRoom.name }}</option>
+                    </select>
+                </div>
+
+                <label for="date" class="col-md-3 col-form-label text-md-right">Please select a date</label>
+
+                <div class="col-md-3">
+                    <datepicker name="date" id="date"
+                            v-model="state.occupy_at"
+                                @selected="dateChanged"></datepicker>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="start_at" class="col-md-3 col-form-label text-md-right">Time</label>
+
+                <div class="col-md-3">
+                    <vue-timepicker id="start_at"
+                                    :hour-range="[[8, 17]]"
+                                    :minute-interval="15"
+                                    v-model="state.start_at">
+
+                    </vue-timepicker>
+                </div>
+
+                <label for="end_at" class="col-md-3 col-form-label text-md-right">Duration</label>
+
+                <div class="col-md-3">
+                    <select v-model="duration"
+                            id="end_at" class="form-control" name="end_at">
+                        <option value="">-- Please select --</option>
+                        <option value="30">30 Minutes</option>
+                        <option value="60">60 Minutes</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="form-group row mb-2">
+                <div class="col-md-12 offset-5">
+                    <a @click="cancel" class="btn btn-warning">
+                        Go back
+                    </a>
+                    <a @click="submit" class="btn btn-primary">
+                        Save
+                    </a>
+                </div>
+            </div>
+        </form>
+
     </div>
-
+</div>
 </template>
 
 <script>
@@ -116,8 +131,11 @@
                 },
                 meetingRooms: [],
                 showRoomList: false,
-                showEndTime: false,
-                duration: ''
+                duration: '',
+                errorVisible: false,
+                messageVisible: false,
+                message: '',
+                error: ''
             }
         },
 
@@ -205,13 +223,6 @@
                     })
             },
 
-            startTimeChanged: function (event) {
-
-                const vm = this;
-
-                vm.showEndTime = true;
-            },
-
             /**
              * Close the form and show the list.
              *
@@ -233,6 +244,8 @@ console.log('cancel')
                 payload.occupy_at = `${vm.state.occupy_at.getFullYear()}-${vm.state.occupy_at.getMonth()+1}-${vm.state.occupy_at.getDate()}`;
                 payload.start_at = `${vm.state.start_at.HH}:${vm.state.start_at.mm}`;
                 payload.end_at = vm.getEndAt(vm.state.start_at, vm.duration);
+                vm.messageVisible = false;
+                vm.errorVisible = false;
 
                 fetch(`api/booking`, {
                     method: 'post',
@@ -252,7 +265,10 @@ console.log('cancel')
                             vm.$emit('updated', data);
                         }
                     })
-                    .catch(err => console.log(err))
+                    .catch(err => {
+                        vm.error = err;
+                        vm.errorVisible = true;
+                    })
             },
 
             getEndAt: function (startAt, minutes) {

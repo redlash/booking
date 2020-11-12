@@ -1984,6 +1984,21 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 
 
@@ -2021,8 +2036,11 @@ __webpack_require__.r(__webpack_exports__);
       },
       meetingRooms: [],
       showRoomList: false,
-      showEndTime: false,
-      duration: ''
+      duration: '',
+      errorVisible: false,
+      messageVisible: false,
+      message: '',
+      error: ''
     };
   },
   methods: {
@@ -2099,10 +2117,6 @@ __webpack_require__.r(__webpack_exports__);
         vm.timeDisabled = false;
       });
     },
-    startTimeChanged: function startTimeChanged(event) {
-      var vm = this;
-      vm.showEndTime = true;
-    },
 
     /**
      * Close the form and show the list.
@@ -2121,6 +2135,8 @@ __webpack_require__.r(__webpack_exports__);
       payload.occupy_at = "".concat(vm.state.occupy_at.getFullYear(), "-").concat(vm.state.occupy_at.getMonth() + 1, "-").concat(vm.state.occupy_at.getDate());
       payload.start_at = "".concat(vm.state.start_at.HH, ":").concat(vm.state.start_at.mm);
       payload.end_at = vm.getEndAt(vm.state.start_at, vm.duration);
+      vm.messageVisible = false;
+      vm.errorVisible = false;
       fetch("api/booking", {
         method: 'post',
         mode: 'cors',
@@ -2141,7 +2157,8 @@ __webpack_require__.r(__webpack_exports__);
           vm.$emit('updated', data);
         }
       })["catch"](function (err) {
-        return console.log(err);
+        vm.error = err;
+        vm.errorVisible = true;
       });
     },
     getEndAt: function getEndAt(startAt, minutes) {
@@ -2254,11 +2271,46 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   created: function created() {
-    this.getRecords();
-    this.getMeetingRooms();
-    this.getUsers();
+    var vm = this;
+    vm.getRecords();
+    vm.getMeetingRooms();
+    vm.getUsers();
   },
   mounted: function mounted() {
     console.log('bookings mounted.');
@@ -2281,7 +2333,6 @@ __webpack_require__.r(__webpack_exports__);
         links: [],
         total: 0
       },
-      showEditForm: false,
       dates: dates,
       state: {
         filters: {
@@ -2290,8 +2341,12 @@ __webpack_require__.r(__webpack_exports__);
           date_from: '',
           date_to: ''
         },
-        sort_by: {}
-      }
+        sort_by: ''
+      },
+      errorVisible: false,
+      messageVisible: false,
+      message: '',
+      error: ''
     };
   },
   methods: {
@@ -2353,6 +2408,23 @@ __webpack_require__.r(__webpack_exports__);
       console.log("pageChanged: ".concat(url));
       vm.getRecords(url);
     },
+    sortDesc: function sortDesc(param) {
+      var vm = this;
+      vm.state.sort_by = "sort_by=".concat(param, ".desc");
+      console.log("sortDesc: ".concat(param));
+      vm.getRecords();
+    },
+    sortAsc: function sortAsc(param) {
+      var vm = this;
+      vm.state.sort_by = "sort_by=".concat(param, ".asc");
+      console.log("sortAsc: ".concat(param));
+      vm.getRecords();
+    },
+    create: function create(event) {
+      var vm = this;
+      vm.$emit('create');
+      console.log('Handle create...');
+    },
     edit: function edit(record) {
       var vm = this;
       vm.$emit('edit', record);
@@ -2377,7 +2449,8 @@ __webpack_require__.r(__webpack_exports__);
       }).then(function (res) {
         return res.json();
       }).then(function (data) {
-        console.log(data); //vm.records = data;
+        console.log(data);
+        vm.records = data;
       })["catch"](function (err) {
         return console.log(err);
       });
@@ -2403,8 +2476,7 @@ __webpack_require__.r(__webpack_exports__);
         }).then(function (payload) {
           console.log(payload);
           vm.records = payload.data;
-        })["catch"](function (err) {
-          return console.log(err);
+        })["catch"](function (err) {//
         });
       }
     },
@@ -2417,6 +2489,7 @@ __webpack_require__.r(__webpack_exports__);
     getParams: function getParams() {
       var vm = this;
       var params = '';
+      /* Append filter params. */
 
       for (var key in vm.state.filters) {
         if (['', null].includes(vm.state.filters[key])) {
@@ -2426,7 +2499,11 @@ __webpack_require__.r(__webpack_exports__);
         params = params.length === 0 ? "".concat(key, "=").concat(vm.state.filters[key]) : "".concat(params, "&").concat(key, "=").concat(vm.state.filters[key]);
         console.log(params);
       }
+      /* Append sorting params. */
 
+
+      params = params.length === 0 ? "".concat(vm.state.sort_by) : "".concat(params, "&").concat(vm.state.sort_by);
+      console.log("getParams: ".concat(params));
       return params;
     },
     hasFilters: function hasFilters() {
@@ -38665,17 +38742,63 @@ var render = function() {
     _vm._v(" "),
     _c("div", { staticClass: "card-body" }, [
       _c("form", [
+        _vm.errorVisible
+          ? _c("div", { staticClass: "form-group row" }, [
+              _c("div", { staticClass: "col-md-10 offset-1" }, [
+                _c(
+                  "div",
+                  {
+                    staticClass: "alert alert-danger",
+                    attrs: { role: "alert" }
+                  },
+                  [
+                    _c("span", { staticClass: "sr-only" }, [_vm._v("Error:")]),
+                    _vm._v(
+                      "\n                        " +
+                        _vm._s(_vm.error) +
+                        "\n                    "
+                    )
+                  ]
+                )
+              ])
+            ])
+          : _vm._e(),
+        _vm._v(" "),
+        _vm.messageVisible
+          ? _c("div", { staticClass: "form-group row" }, [
+              _c("div", { staticClass: "col-md-10 offset-1" }, [
+                _c(
+                  "div",
+                  {
+                    staticClass: "alert alert-success",
+                    attrs: { role: "alert" }
+                  },
+                  [
+                    _c("span", { staticClass: "sr-only" }, [
+                      _vm._v("Success:")
+                    ]),
+                    _vm._v(
+                      "\n                        " +
+                        _vm._s(_vm.message) +
+                        "\n                    "
+                    )
+                  ]
+                )
+              ])
+            ])
+          : _vm._e(),
+        _vm._v(" "),
         _c("div", { staticClass: "form-group row" }, [
           _c(
             "label",
             {
-              staticClass: "col-md-2 col-form-label text-md-right",
+              staticClass: "col-md-3 col-form-label text-md-right",
               attrs: { for: "meeting_room" }
             },
             [_vm._v("Select a meeting room")]
           ),
           _vm._v(" "),
-          _c("div", { staticClass: "col-md-4" }, [
+          _c("div", { staticClass: "col-md-3" }, [
             _c(
               "select",
               {
@@ -38735,7 +38858,7 @@ var render = function() {
           _c(
             "label",
             {
-              staticClass: "col-md-2 col-form-label text-md-right",
+              staticClass: "col-md-3 col-form-label text-md-right",
               attrs: { for: "date" }
             },
             [_vm._v("Please select a date")]
@@ -38743,7 +38866,7 @@ var render = function() {
           _vm._v(" "),
           _c(
             "div",
-            { staticClass: "col-md-4" },
+            { staticClass: "col-md-3" },
             [
               _c("datepicker", {
                 attrs: { name: "date", id: "date" },
@@ -38765,7 +38888,7 @@ var render = function() {
           _c(
             "label",
             {
-              staticClass: "col-md-2 col-form-label text-md-right",
+              staticClass: "col-md-3 col-form-label text-md-right",
               attrs: { for: "start_at" }
             },
             [_vm._v("Time")]
@@ -38773,7 +38896,7 @@ var render = function() {
           _vm._v(" "),
           _c(
             "div",
-            { staticClass: "col-md-4" },
+            { staticClass: "col-md-3" },
             [
               _c("vue-timepicker", {
                 attrs: {
@@ -38781,7 +38904,6 @@ var render = function() {
                   "hour-range": [[8, 17]],
                   "minute-interval": 15
                 },
-                on: { change: _vm.startTimeChanged },
                 model: {
                   value: _vm.state.start_at,
                   callback: function($$v) {
@@ -38797,13 +38919,13 @@ var render = function() {
           _c(
             "label",
             {
-              staticClass: "col-md-2 col-form-label text-md-right",
+              staticClass: "col-md-3 col-form-label text-md-right",
               attrs: { for: "end_at" }
             },
             [_vm._v("Duration")]
           ),
           _vm._v(" "),
-          _c("div", { staticClass: "col-md-4" }, [
+          _c("div", { staticClass: "col-md-3" }, [
             _c(
               "select",
               {
@@ -38852,7 +38974,7 @@ var render = function() {
           _c("div", { staticClass: "col-md-12 offset-5" }, [
             _c(
               "a",
-              { staticClass: "btn btn-dark", on: { click: _vm.cancel } },
+              { staticClass: "btn btn-warning", on: { click: _vm.cancel } },
               [
                 _vm._v(
                   "\n                        Go back\n                    "
@@ -38894,13 +39016,25 @@ var render = function() {
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
   return _c("div", { staticClass: "card" }, [
-    _c("div", { staticClass: "card-header" }, [
-      _c("h3", [
-        _vm._v("Booking records (" + _vm._s(_vm.pagination.total) + ")")
+    _c("div", { staticClass: "card-header container-fluid" }, [
+      _c("div", { staticClass: "row" }, [
+        _c("div", { staticClass: "col-md-9" }, [
+          _c("h3", [
+            _vm._v("Booking records (" + _vm._s(_vm.pagination.total) + ")")
+          ])
+        ]),
+        _vm._v(" "),
+        ![null, undefined, ""].includes(_vm.user)
+          ? _c("div", { staticClass: "col-md-3 float-right" }, [
+              _c(
+                "a",
+                { staticClass: "btn btn-primary", on: { click: _vm.create } },
+                [_vm._v("Book a meeting room")]
+              )
+            ])
+          : _vm._e()
       ])
     ]),
-    _vm._v(" "),
-    _c("div", { staticClass: "card-body" }),
     _vm._v(" "),
     _c(
       "div",
@@ -38912,186 +39046,50 @@ var render = function() {
             ])
           : _vm._e(),
         _vm._v(" "),
-        _vm.records.length > 0
-          ? _c("div", { staticClass: "row mb-3" }, [
-              _vm._m(0),
-              _vm._v(" "),
-              _vm._m(1),
-              _vm._v(" "),
-              _vm._m(2),
-              _vm._v(" "),
-              _vm.user !== null
-                ? _c("div", { staticClass: "col-md-2 text-center" }, [
-                    _c("strong", [_vm._v("Actions")])
-                  ])
-                : _vm._e()
+        _vm.errorVisible
+          ? _c("div", { staticClass: "form-group row" }, [
+              _c("div", { staticClass: "col-md-10 offset-1" }, [
+                _c(
+                  "div",
+                  {
+                    staticClass: "alert alert-danger",
+                    attrs: { role: "alert" }
+                  },
+                  [
+                    _c("span", { staticClass: "sr-only" }, [_vm._v("Error:")]),
+                    _vm._v(
+                      "\n                    " +
+                        _vm._s(_vm.error) +
+                        "\n                "
+                    )
+                  ]
+                )
+              ])
             ])
           : _vm._e(),
         _vm._v(" "),
-        _vm._l(_vm.records, function(record) {
-          return _vm.records.length > 0
-            ? _c(
-                "div",
-                {
-                  staticClass: "row mb-2",
-                  attrs: { id: "booking-" + record.id }
-                },
-                [
-                  _c("div", { staticClass: "col-md-4" }, [
+        _vm.messageVisible
+          ? _c("div", { staticClass: "form-group row" }, [
+              _c("div", { staticClass: "col-md-10 offset-1" }, [
+                _c(
+                  "div",
+                  {
+                    staticClass: "alert alert-success",
+                    attrs: { role: "alert" }
+                  },
+                  [
+                    _c("span", { staticClass: "sr-only" }, [
+                      _vm._v("Success:")
+                    ]),
                     _vm._v(
-                      _vm._s(record.occupy_at) +
-                        " " +
-                        _vm._s(record.start_at) +
-                        "-" +
-                        _vm._s(record.end_at)
+                      "\n                    " +
+                        _vm._s(_vm.message) +
+                        "\n                "
                     )
-                  ]),
-                  _vm._v(" "),
-                  _c("div", { staticClass: "col-md-4" }, [
-                    _vm._v(_vm._s(record.user.name))
-                  ]),
-                  _vm._v(" "),
-                  _c("div", { staticClass: "col-md-2" }, [
-                    _vm._v(_vm._s(record.meeting_room.name))
-                  ]),
-                  _vm._v(" "),
-                  _vm.user !== null
-                    ? _c("div", { staticClass: "col-md-2" }, [
-                        _c(
-                          "a",
-                          {
-                            staticClass: "btn btn-info mr-1",
-                            on: {
-                              click: function($event) {
-                                return _vm.edit(record)
-                              }
-                            }
-                          },
-                          [_vm._v("Edit")]
-                        ),
-                        _vm._v(" "),
-                        _c(
-                          "a",
-                          {
-                            staticClass: "btn btn-danger",
-                            on: {
-                              click: function($event) {
-                                return _vm.cancel(record)
-                              }
-                            }
-                          },
-                          [_vm._v("Cancel")]
-                        )
-                      ])
-                    : _vm._e()
-                ]
-              )
-            : _vm._e()
-        }),
-        _vm._v(" "),
-        _vm.records.length > 0 && _vm.pagination.links.length > 3
-          ? _c(
-              "div",
-              {
-                staticClass: "row mb-2",
-                attrs: { id: "pagination-container" }
-              },
-              [
-                _c("nav", { attrs: { "aria-label": "pagination" } }, [
-                  _c(
-                    "ul",
-                    { staticClass: "pagination" },
-                    [
-                      _c(
-                        "li",
-                        {
-                          class: {
-                            "page-item": true,
-                            disabled: _vm.pagination.current_page === 1
-                          }
-                        },
-                        [
-                          _c(
-                            "a",
-                            {
-                              staticClass: "page-link",
-                              on: {
-                                click: function($event) {
-                                  return _vm.pageChanged(
-                                    $event,
-                                    _vm.pagination.prev_page_url
-                                  )
-                                }
-                              }
-                            },
-                            [_vm._v("Previous")]
-                          )
-                        ]
-                      ),
-                      _vm._v(" "),
-                      _vm._l(_vm.pagination.links, function(link) {
-                        return ["Previous", "Next"].includes(link.label) ===
-                          false
-                          ? _c(
-                              "li",
-                              {
-                                class: {
-                                  "page-item": true,
-                                  active: link.active
-                                }
-                              },
-                              [
-                                _c(
-                                  "a",
-                                  {
-                                    staticClass: "page-link",
-                                    on: {
-                                      click: function($event) {
-                                        return _vm.pageChanged($event, link.url)
-                                      }
-                                    }
-                                  },
-                                  [_vm._v(_vm._s(link.label))]
-                                )
-                              ]
-                            )
-                          : _vm._e()
-                      }),
-                      _vm._v(" "),
-                      _c(
-                        "li",
-                        {
-                          class: {
-                            "page-item": true,
-                            disabled:
-                              _vm.pagination.current_page ===
-                              _vm.pagination.last_page
-                          }
-                        },
-                        [
-                          _c(
-                            "a",
-                            {
-                              staticClass: "page-link",
-                              on: {
-                                click: function($event) {
-                                  return _vm.pageChanged(
-                                    $event,
-                                    _vm.pagination.next_page_url
-                                  )
-                                }
-                              }
-                            },
-                            [_vm._v("Next")]
-                          )
-                        ]
-                      )
-                    ],
-                    2
-                  )
-                ])
-              ]
-            )
+                  ]
+                )
+              ])
+            ])
           : _vm._e(),
         _vm._v(" "),
         _vm.records.length > 0 || _vm.hasFilters()
@@ -39141,9 +39139,9 @@ var render = function() {
                         _vm._v("-- Filter by User --")
                       ]),
                       _vm._v(" "),
-                      _vm._l(_vm.users, function(user) {
-                        return _c("option", { domProps: { value: user.id } }, [
-                          _vm._v(_vm._s(user.name))
+                      _vm._l(_vm.users, function(usr) {
+                        return _c("option", { domProps: { value: usr.id } }, [
+                          _vm._v(_vm._s(usr.name))
                         ])
                       })
                     ],
@@ -39316,40 +39314,293 @@ var render = function() {
                 ])
               ]
             )
+          : _vm._e(),
+        _vm._v(" "),
+        _c("hr"),
+        _vm._v(" "),
+        _vm.records.length > 0
+          ? _c("div", { staticClass: "row mb-3" }, [
+              _c("div", { staticClass: "col-md-3 text-center" }, [
+                _c("span", [
+                  _c(
+                    "a",
+                    {
+                      on: {
+                        click: function($event) {
+                          return _vm.sortAsc("date")
+                        }
+                      }
+                    },
+                    [_c("strong", [_vm._v("^")])]
+                  )
+                ]),
+                _vm._v("\n                   "),
+                _c("strong", [_vm._v("Date")]),
+                _vm._v("   \n                "),
+                _c("span", { staticStyle: { "font-size": "24px" } }, [
+                  _c(
+                    "a",
+                    {
+                      on: {
+                        click: function($event) {
+                          return _vm.sortDesc("date")
+                        }
+                      }
+                    },
+                    [_vm._v("⌄")]
+                  )
+                ])
+              ]),
+              _vm._v(" "),
+              _c("div", { staticClass: "col-md-3 text-center" }, [
+                _c("span", [
+                  _c(
+                    "a",
+                    {
+                      on: {
+                        click: function($event) {
+                          return _vm.sortAsc("user")
+                        }
+                      }
+                    },
+                    [_c("strong", [_vm._v("^")])]
+                  )
+                ]),
+                _vm._v("\n                   "),
+                _c("strong", [_vm._v("Owner")]),
+                _vm._v("   \n                "),
+                _c("span", { staticStyle: { "font-size": "24px" } }, [
+                  _c(
+                    "a",
+                    {
+                      on: {
+                        click: function($event) {
+                          return _vm.sortDesc("user")
+                        }
+                      }
+                    },
+                    [_vm._v("⌄")]
+                  )
+                ])
+              ]),
+              _vm._v(" "),
+              _c("div", { staticClass: "col-md-3 text-center" }, [
+                _c("span", [
+                  _c(
+                    "a",
+                    {
+                      on: {
+                        click: function($event) {
+                          return _vm.sortAsc("meeting_room")
+                        }
+                      }
+                    },
+                    [_c("strong", [_vm._v("^")])]
+                  )
+                ]),
+                _vm._v("\n                   "),
+                _c("strong", [_vm._v("Meeting room")]),
+                _vm._v("   \n                "),
+                _c("span", { staticStyle: { "font-size": "24px" } }, [
+                  _c(
+                    "a",
+                    {
+                      on: {
+                        click: function($event) {
+                          return _vm.sortDesc("meeting_room")
+                        }
+                      }
+                    },
+                    [_vm._v("⌄")]
+                  )
+                ])
+              ]),
+              _vm._v(" "),
+              ![null, undefined, ""].includes(_vm.user)
+                ? _c("div", { staticClass: "col-md-3 text-center" }, [
+                    _c("strong", [_vm._v("Actions")])
+                  ])
+                : _vm._e()
+            ])
+          : _vm._e(),
+        _vm._v(" "),
+        _c("hr"),
+        _vm._v(" "),
+        _vm._l(_vm.records, function(record) {
+          return _vm.records.length > 0
+            ? _c(
+                "div",
+                {
+                  staticClass: "row mb-2",
+                  attrs: { id: "booking-" + record.id }
+                },
+                [
+                  _c("div", { staticClass: "col-md-3 text-center" }, [
+                    _vm._v(
+                      _vm._s(record.occupy_at) +
+                        " (" +
+                        _vm._s(record.start_at) +
+                        "-" +
+                        _vm._s(record.end_at) +
+                        ")"
+                    )
+                  ]),
+                  _vm._v(" "),
+                  _c("div", { staticClass: "col-md-3 text-center" }, [
+                    _vm._v(_vm._s(record.user.name))
+                  ]),
+                  _vm._v(" "),
+                  _c("div", { staticClass: "col-md-3 text-center" }, [
+                    _vm._v(_vm._s(record.meeting_room.name))
+                  ]),
+                  _vm._v(" "),
+                  ![null, undefined, ""].includes(_vm.user) &&
+                  record.user.id === _vm.user.id
+                    ? _c("div", { staticClass: "col-md-3 text-center" }, [
+                        _c(
+                          "a",
+                          {
+                            staticClass: "btn btn-info mr-1",
+                            on: {
+                              click: function($event) {
+                                return _vm.edit(record)
+                              }
+                            }
+                          },
+                          [_vm._v("Edit")]
+                        ),
+                        _vm._v(" "),
+                        _c(
+                          "a",
+                          {
+                            staticClass: "btn btn-danger",
+                            on: {
+                              click: function($event) {
+                                return _vm.cancel(record)
+                              }
+                            }
+                          },
+                          [_vm._v("Cancel")]
+                        )
+                      ])
+                    : _vm._e()
+                ]
+              )
+            : _vm._e()
+        }),
+        _vm._v(" "),
+        _c("hr"),
+        _vm._v(" "),
+        _vm.records.length > 0 && _vm.pagination.links.length > 3
+          ? _c(
+              "div",
+              {
+                staticClass: "row justify-content-center mt-3",
+                attrs: { id: "pagination-container" }
+              },
+              [
+                _c("nav", { attrs: { "aria-label": "pagination" } }, [
+                  _c(
+                    "ul",
+                    { staticClass: "pagination" },
+                    [
+                      _c(
+                        "li",
+                        {
+                          class: {
+                            "page-item": true,
+                            disabled: _vm.pagination.current_page === 1
+                          }
+                        },
+                        [
+                          _c(
+                            "a",
+                            {
+                              staticClass: "page-link",
+                              on: {
+                                click: function($event) {
+                                  return _vm.pageChanged(
+                                    $event,
+                                    _vm.pagination.prev_page_url
+                                  )
+                                }
+                              }
+                            },
+                            [_vm._v("Previous")]
+                          )
+                        ]
+                      ),
+                      _vm._v(" "),
+                      _vm._l(_vm.pagination.links, function(link) {
+                        return ["Previous", "Next"].includes(link.label) ===
+                          false
+                          ? _c(
+                              "li",
+                              {
+                                class: {
+                                  "page-item": true,
+                                  active: link.active
+                                }
+                              },
+                              [
+                                _c(
+                                  "a",
+                                  {
+                                    staticClass: "page-link",
+                                    on: {
+                                      click: function($event) {
+                                        return _vm.pageChanged($event, link.url)
+                                      }
+                                    }
+                                  },
+                                  [_vm._v(_vm._s(link.label))]
+                                )
+                              ]
+                            )
+                          : _vm._e()
+                      }),
+                      _vm._v(" "),
+                      _c(
+                        "li",
+                        {
+                          class: {
+                            "page-item": true,
+                            disabled:
+                              _vm.pagination.current_page ===
+                              _vm.pagination.last_page
+                          }
+                        },
+                        [
+                          _c(
+                            "a",
+                            {
+                              staticClass: "page-link",
+                              on: {
+                                click: function($event) {
+                                  return _vm.pageChanged(
+                                    $event,
+                                    _vm.pagination.next_page_url
+                                  )
+                                }
+                              }
+                            },
+                            [_vm._v("Next")]
+                          )
+                        ]
+                      )
+                    ],
+                    2
+                  )
+                ])
+              ]
+            )
           : _vm._e()
       ],
       2
     )
   ])
 }
-var staticRenderFns = [
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c("div", { staticClass: "col-md-4 text-center" }, [
-      _c("i", { staticClass: "glyphicon-arrow-up" }),
-      _c("strong", [_vm._v("Date")]),
-      _c("i", { staticClass: "glyphicon-arrow-down" })
-    ])
-  },
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c("div", { staticClass: "col-md-4 text-center" }, [
-      _c("strong", [_vm._v("Owner")])
-    ])
-  },
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c("div", { staticClass: "col-md-2 text-center" }, [
-      _c("strong", [_vm._v("Meeting room")])
-    ])
-  }
-]
+var staticRenderFns = []
 render._withStripped = true
 
 
@@ -61236,8 +61487,6 @@ module.exports = function(module) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-var _this = this;
-
 /**
  * First we will load all of this project's JavaScript dependencies which
  * includes Vue and other libraries. It is a great starting point when
@@ -61267,7 +61516,6 @@ Vue.component('booking-form', __webpack_require__(/*! ./components/BookingForm.v
 var app = new Vue({
   el: '#app',
   data: {
-    listExists: true,
     listVisible: true,
     formVisible: false,
     bookingRecord: null
@@ -61280,8 +61528,11 @@ var app = new Vue({
      */
     showNewForm: function showNewForm(event) {
       var instance = this;
-      instance.listExists = false;
-      instance.formVisible = true;
+      instance.listVisible = false;
+      instance.formVisible = false;
+      Vue.nextTick(function () {
+        instance.formVisible = true;
+      });
     },
 
     /**
@@ -61294,11 +61545,12 @@ var app = new Vue({
       var instance = this;
       console.log("showEditForm:");
       console.log(record);
-      console.log(event);
-      instance.listExists = true;
-      instance.listVisible = false;
-      instance.formVisible = true;
       instance.bookingRecord = record;
+      instance.listVisible = false;
+      instance.formVisible = false;
+      Vue.nextTick(function () {
+        instance.formVisible = true;
+      });
     },
 
     /**
@@ -61309,8 +61561,11 @@ var app = new Vue({
      */
     handleCreated: function handleCreated(event) {
       var instance = this;
-      instance.listExists = true;
+      instance.listVisible = false;
       instance.formVisible = false;
+      Vue.nextTick(function () {
+        instance.listVisible = true;
+      });
     },
 
     /**
@@ -61321,11 +61576,13 @@ var app = new Vue({
      * @param record
      */
     handleUpdated: function handleUpdated(event, record) {
-      var instance = _this;
-      instance.listExists = true;
-      instance.listVisible = true;
+      var instance = this;
+      instance.listVisible = false;
       instance.formVisible = false;
       instance.bookingRecord = null;
+      Vue.nextTick(function () {
+        instance.listVisible = true;
+      });
     },
 
     /**
@@ -61334,11 +61591,11 @@ var app = new Vue({
      * @param event
      */
     handleCanceled: function handleCanceled(event) {
-      var instance = _this;
+      var instance = this;
       console.log("handleCanceled:");
+      instance.formVisible = false;
+      instance.listVisible = false;
       Vue.nextTick(function () {
-        instance.formVisible = false;
-        instance.listExists = true;
         instance.listVisible = true;
       });
     }

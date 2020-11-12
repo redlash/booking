@@ -20,7 +20,7 @@ class BookingManager
 
     protected $filters = [];
 
-    protected $sortBy = null;
+    protected $sortBy = [];
 
     /**
      * Get all the booking records.
@@ -29,11 +29,11 @@ class BookingManager
      */
     public function getAll()
     {
-        $records = Booking::with(['user', 'meetingRoom'])->orderBy('start_at');
+        $records = Booking::with(['user', 'meetingRoom']);
 
         $this->applyFilters($records);
 
-        //$this->applySorters($records);
+        $this->applySorting($records);
 
         return $records->paginate(5);
     }
