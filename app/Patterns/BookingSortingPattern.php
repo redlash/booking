@@ -6,18 +6,42 @@
  */
 trait BookingSortingPattern
 {
-    public function applyMeetingRoomSorter($query, $asc = true)
+    public function setSortBy($param)
     {
-        return $asc ? $query->orderBy('meeting_rooms.name') : $query->orderBy('meeting_rooms.name', 'DESC');
+        $params = explode('.', $param);
+        if (count($params) === 0) {
+            return;
+        }
+        if (! in_array($params[0], ['meeting_room', 'user', 'date'])) {
+            return;
+        }
+
+        if (!isset($params[1]) || !in_array($params[1], ['asc', 'desc'])) {
+            $params[1] = 'ASC';
+        }
+
+        $methods = [
+            'date' => 'applyDateSorter',
+            'meeting_room' => 'applyMeetingRoomSorter',
+            'user' => 'applyUserSorter'
+        ];
+        $this->sortBy = [];
+        $this->sortBy['method'] = $methods[$params[0]];
+        $this->sortBy['type'] = $params[1];
     }
 
-    public function applyUserSorter($query, $asc = true)
+    public function applyMeetingRoomSorter($query, $type = 'ASC')
     {
-        return $asc ? $query->orderBy('users.name') : $query->orderBy('users.name', 'DESC');
+        return $query->orderBy('meeting_rooms.name', $type);
     }
 
-    public function applyDateSorter($query, $asc = true)
+    public function applyUserSorter($query, $type = 'ASC')
     {
-        return $asc ? $query->orderBy('users_meeting_rooms.start_at') : $query->orderBy('users.name', 'DESC');
+        return $query->orderBy('users.name', $type);
+    }
+
+    public function applyDateSorter($query, $type = 'ASC')
+    {
+        return $query->orderBy('users_meeting_rooms.occupy_at', $type);
     }
 }

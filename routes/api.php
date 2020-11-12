@@ -23,6 +23,10 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
  */
 Route::get('bookings', 'App\Http\Controllers\BookingController@indexAll');
 
+Route::get('meeting_rooms', 'App\Http\Controllers\MeetingRoomController@index');
+
+Route::get('users', 'App\Http\Controllers\UserController@index');
+
 Route::middleware('auth:api')->group(function () {
 
     /**
@@ -43,7 +47,7 @@ Route::middleware('auth:api')->group(function () {
     /**
      * Routes for meeting rooms.
      */
-    Route::get('meeting_rooms', 'App\Http\Controllers\MeetingRoomController@index');
+    Route::get('meeting_room/{id}/{date}', 'App\Http\Controllers\MeetingRoomController@getRecords');
 });
 
 

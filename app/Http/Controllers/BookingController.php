@@ -22,9 +22,34 @@ class BookingController extends Controller
      */
     public function indexAll()
     {
-        $service = app(BookingManager::class);
+        try {
+            $service = app(BookingManager::class);
 
-        return response($service->getAll(), 200);
+            /* Set filters. */
+            $filters = [];
+            foreach (['user_id', 'meeting_room_id', 'date_from', 'date_to'] as $filter) {
+                if (isset(request()->$filter)) {
+                    $filters[$filter] = request()->$filter;
+                }
+            }
+            $service->setFilters($filters);
+
+            /* Set sorting. */
+            if (isset(request()->sort_by)) {
+                $service->setSortBy(request()->sort_by);
+            }
+
+            $results = $service->getAll();
+
+        } catch (\Exception $exception) {
+
+            return response(
+                ['error' => $exception->getMessage()],
+                400
+            );
+        }
+
+        return response($results, 200);
     }
 
     /**
@@ -34,10 +59,38 @@ class BookingController extends Controller
      */
     public function index($id)
     {
-        $user = User::findOrFail($id);
-        $bookings = $user->bookings->orderBy('start_at')->paginate(5);
+        try {
+            $service = app(BookingManager::class);
 
-        return response(BookingResource::collection($bookings), 200);
+            /* Set filters. */
+            $filters = [];
+            foreach (['user_id', 'meeting_room_id', 'occupy_at'] as $filter) {
+                if (isset(request()->$filter)) {
+                    $filters[$filter] = request()->$filter;
+                }
+            }
+            $service->setFilters($filters);
+
+            /* Set sorting. */
+            if (isset(request()->sort_by)) {
+                $service->setSortBy(request()->sort_by);
+            }
+
+            $results = $service->get($id);
+
+        } catch (\Exception $exception) {
+
+            return response(
+                ['error' => $exception->getMessage()],
+                400
+            );
+        }
+
+//        $user = User::findOrFail($id);
+//        $bookings = $user->bookings->orderBy('start_at')->paginate(5);
+
+        return response($results, 200);
+        //return response(BookingResource::collection($bookings), 200);
     }
 
     /**
@@ -92,17 +145,35 @@ class BookingController extends Controller
      */
     public function update(Request $request, $id)
     {
-        /**
-         * @todo: validation
-         */
-        $booking = Booking::findOrFail($id);
+        try {
+            $service = app(BookingManager::class);
+            $service->update($id, $request->all());
 
-        foreach($request->all() as $key => $value) {
-            $booking->$key = $value;
+        } catch (\Exception $exception) {
+            return response(
+                [
+                    'error' => $exception->getMessage()
+                ],
+                400
+            );
         }
-        $booking->save();
 
-        return $this->index();
+        return response(
+            [
+                'message' => 'You have booked the meeting room successfully.',
+                'data' => $service->getAll()
+            ],
+            200
+        );
+
+//        $booking = Booking::findOrFail($id);
+//
+//        foreach($request->all() as $key => $value) {
+//            $booking->$key = $value;
+//        }
+//        $booking->save();
+//
+//        return $this->index();
     }
 
     /**
@@ -113,23 +184,36 @@ class BookingController extends Controller
      */
     public function destroy($id)
     {
-        /**
-         * @todo: grab the booking from user's booking.
-         */
-        $booking = Booking::findOrFail($id);
-        $booking->delete();
+        try {
+            $service = app(BookingManager::class);
+            $service->delete($id);
+
+        } catch (\Exception $exception) {
+            return response(
+                [
+                    'error' => $exception->getMessage()
+                ],
+                400
+            );
+        }
 
         return response(
             [
-                'message' => 'You have canceled your booking.',
-                'data' => $this->index()
+                'message' => 'You have cancel the booking successfully.',
+                'data' => $service->getAll()
             ],
             200
         );
-    }
 
-    public function listSlots($date)
-    {
-        return response([], 200);
+//        $booking = Booking::findOrFail($id);
+//        $booking->delete();
+//
+//        return response(
+//            [
+//                'message' => 'You have canceled your booking.',
+//                'data' => $this->index()
+//            ],
+//            200
+//        );
     }
 }

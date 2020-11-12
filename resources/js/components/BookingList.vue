@@ -3,43 +3,83 @@
     <div class="card">
         <div class="card-header"><h3>Booking records</h3></div>
 
-        <div class="card-body text-center" v-if="records.length === 0">
-            <h4 class="text-info">No booking records.</h4>
+        <div class="card-body">
+
         </div>
 
-        <div class="card-body" v-if="records.length > 0">
+        <div class="card-body">
 
-            <div class="row mb-3">
-                <div class="col-md-2">Filters: </div>
-                <div class="col-md-4">Meeting room</div>
-            </div>
+            <h4 class="text-info text-center" v-if="records.length === 0">No booking records.</h4>
 
-            <div class="row mb-3">
-                <div class="col-md-6 text-center"><strong>Date</strong></div>
+            <div class="row mb-3" v-if="records.length > 0">
+                <div class="col-md-4 text-center">
+                    <i class="glyphicon-arrow-up"></i><strong>Date</strong><i class="glyphicon-arrow-down"></i>
+                </div>
+                <div class="col-md-4 text-center"><strong>Owner</strong></div>
                 <div class="col-md-2 text-center"><strong>Meeting room</strong></div>
                 <div class="col-md-2 text-center" v-if="user !== null"><strong>Actions</strong></div>
             </div>
 
-            <div class="row mb-2" v-for="record in records" :id="'booking-' + record.id">
-                <div class="col-md-6">{{ record.occupy_at }} {{ record.start_at }}-{{ record.end_at }}</div>
+            <div class="row mb-2"  v-if="records.length > 0"
+                 v-for="record in records" :id="'booking-' + record.id">
+                <div class="col-md-4">{{ record.occupy_at }} {{ record.start_at }}-{{ record.end_at }}</div>
+                <div class="col-md-4">{{ record.user.name }}</div>
                 <div class="col-md-2">{{ record.meeting_room.name }}</div>
                 <div class="col-md-2" v-if="user !== null">
-                    <a class="btn btn-info" @click="edit(record)">Edit</a>
-                    <a class="btn btn-warning" @click="cancel(record)">Cancel</a>
+                    <a class="btn btn-info mr-1" @click="edit(record)">Edit</a>
+                    <a class="btn btn-danger" @click="cancel(record)">Cancel</a>
                 </div>
             </div>
 
-            <div class="row mb-2">
+            <div class="row mb-2" id="pagination-container" v-if="records.length > 0 && pagination.links.length > 3">
                 <nav aria-label="pagination">
                     <ul class="pagination">
-                        <li class="page-item"><a class="page-link" href="#">Previous</a></li>
-                        <li class="page-item"><a class="page-link" href="#">1</a></li>
-                        <li class="page-item"><a class="page-link" href="#">2</a></li>
-                        <li class="page-item"><a class="page-link" href="#">3</a></li>
-                        <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                        <li :class="{ 'page-item': true, disabled: pagination.current_page === 1 }">
+                            <a class="page-link" @click="pageChanged($event, pagination.prev_page_url)">Previous</a>
+                        </li>
+                        <li v-for="link in pagination.links"
+                            :class="{ 'page-item': true, active: link.active }"
+                            v-if="['Previous', 'Next'].includes(link.label) === false">
+                            <a class="page-link" @click="pageChanged($event, link.url)">{{ link.label }}</a>
+                        </li>
+                        <li :class="{ 'page-item': true, disabled: pagination.current_page === pagination.last_page }">
+                            <a class="page-link" @click="pageChanged($event, pagination.next_page_url)">Next</a>
+                        </li>
                     </ul>
                 </nav>
             </div>
+
+            <div class="row mt-3" id="filters-container" v-if="records.length > 0 || hasFilters()">
+                <div class="col-md-3">
+                    <select v-model="state.filters.user_id" @change="filterChanged"
+                            id="filter_by_user" class="form-control" name="filter_by_user">
+                        <option value="">-- Filter by User --</option>
+                        <option v-for="user in users" :value="user.id">{{ user.name }}</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <select v-model="state.filters.meeting_room_id" @change="filterChanged"
+                            id="filter_by_meeting_room" class="form-control" name="filter_by_meeting_room">
+                        <option value="">-- Filter by Meeting Room --</option>
+                        <option v-for="meetingRoom in meetingRooms" :value="meetingRoom.id">{{ meetingRoom.name }}</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select v-model="state.filters.date_from" @change="filterChanged"
+                            id="filter_by_date" class="form-control" name="filter_by_date">
+                        <option value="">-- From Date --</option>
+                        <option v-for="date in dates" :value="date">{{ date }}</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select v-model="state.filters.date_to" @change="filterChanged"
+                            id="filter_by_date_end" class="form-control" name="filter_by_date_end">
+                        <option value="">-- To Date --</option>
+                        <option v-for="date in dates" :value="date">{{ date }}</option>
+                    </select>
+                </div>
+            </div>
+
         </div>
     </div>
 </template>
@@ -50,6 +90,8 @@ export default {
     created() {
 
         this.getRecords();
+        this.getMeetingRooms();
+        this.getUsers();
     },
 
     mounted() {
@@ -60,34 +102,104 @@ export default {
 
     data: function () {
 
+        let d = new Date(), dates = [];
+        for (let i=0;i<31;i++) {
+            dates[i] = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+            d.setDate(d.getDate() + 1);
+        }
+
         return {
+            users: [],
+            meetingRooms: [],
             records: [],
-            pagination: {},
+            pagination: {links: []},
             showEditForm: false,
+            dates: dates,
+            state: {
+                filters:{
+                    user_id: '',
+                    meeting_room_id: '',
+                    date_from: '',
+                    date_to: ''
+                },
+                sort_by: {}
+            }
         }
     },
 
     methods: {
 
-        getRecords: function () {
+        getMeetingRooms: function() {
+
+            const vm = this;
+
+            fetch('/api/meeting_rooms')
+                .then(res => res.json())
+                .then(payload => {
+                    console.log(payload);
+                    vm.meetingRooms = payload;
+                })
+                .catch(err => console.log(err))
+        },
+
+        getUsers: function () {
+
+            const vm = this;
+
+            fetch('/api/users')
+                .then(res => res.json())
+                .then(payload => {
+                    console.log(payload);
+                    vm.users = payload;
+                })
+                .catch(err => console.log(err))
+        },
+
+        /**
+         * When url not null, it is a page url.
+         */
+        getRecords: function (url = null) {
 
             let vm = this;
 
-            fetch('/api/bookings')
+            let params = vm.getParams();
+
+            const endpoint = url === null
+                ? (params.length === 0 ? '/api/bookings': `/api/bookings?${params}`)
+                : `${url}&${params}`
+
+            fetch(endpoint)
                 .then(res => res.json())
                 .then(payload => {
                     console.log(payload);
                     vm.records = payload.data;
                     vm.pagination = {
                         current_page: payload.current_page,
+                        last_page: payload.last_page,
                         first_page_url: payload.first_page_url,
+                        next_page_url: payload.next_page_url,
+                        prev_page_url: payload.prev_page_url,
                         links: payload.links
                     }
                 })
                 .catch(err => console.log(err))
         },
 
-        edit: function (event, record) {
+        filterChanged: function (event) {
+
+            const vm = this;
+
+            vm.getRecords();
+        },
+
+        pageChanged: function (event, url) {
+
+            const vm = this;
+console.log(`pageChanged: ${url}`)
+            vm.getRecords(url)
+        },
+
+        edit: function (record) {
             this.showEditForm = true;
             console.log('Handle edit...')
         },
@@ -95,8 +207,6 @@ export default {
         save: function (event, record) {
 
             const vm = this;
-
-            event.preventDefault();
 
             if (vm.user === null) {
                 return;
@@ -119,17 +229,15 @@ export default {
                 .catch(err => console.log(err))
         },
 
-        cancel: function (event, record) {
+        cancel: function (record) {
 
             const vm = this;
-
-            event.preventDefault();
 
             if (vm.user === null) {
                 return;
             }
 
-            if (confirm('Are you sure?')) {
+            if (confirm('Are you sure you want to cancel this booking?')) {
                 fetch(`api/booking/${record.id}`, {
                     method: 'delete',
                     mode: 'cors',
@@ -139,12 +247,50 @@ export default {
                         'Content-Type': 'application/json'
                     }
                 }).then(res => res.json())
-                    .then(data => {
-                        console.log(data);
-                        //vm.records = data;
+                    .then(payload => {
+                        console.log(payload);
+                        vm.records = payload.data;
                     })
                     .catch(err => console.log(err))
             }
+        },
+
+        /**
+         * Generate parameters for filters and sorting.
+         *
+         * @param event
+         */
+        getParams: function () {
+
+            const vm = this;
+
+            let params = '';
+            for (const key in vm.state.filters) {
+
+                if (['', null].includes(vm.state.filters[key])) {
+                    continue;
+                }
+
+                params = params.length === 0
+                    ? `${key}=${vm.state.filters[key]}`
+                    : `${params}&${key}=${vm.state.filters[key]}`;
+                console.log(params);
+            }
+
+            return params;
+        },
+
+        hasFilters: function () {
+
+            const vm = this;
+
+            for (const key in vm.state.filters) {
+
+                if (! ['', null].includes(vm.state.filters[key])) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

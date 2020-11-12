@@ -2,10 +2,11 @@
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class MeetingRoom extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -52,16 +53,16 @@ class MeetingRoom extends Model
         return $this->hasMany(Booking::class, 'meeting_room_id', 'id');
     }
 
-    public function getOccupiedSlots($date)
+    /**
+     * Get all booking records on a specific day.
+     *
+     * @param $date
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function getBookingRecords($date)
     {
-        return $this->bookingRecords();
-//            ->whereBetween('start_at', [$date, $date->addHours(7)])
-//            ->orderBy('start_at')
-//            ->select('start_at', 'end_at');
-    }
-
-    public function getAvailableSlots($date)
-    {
-        return $this->bookingRecords;
+        return $this->bookingRecords()
+            ->where('occupy_at', $date->startOfDay());
     }
 }

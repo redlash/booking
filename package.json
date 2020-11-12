@@ -25,6 +25,8 @@
     },
     "dependencies": {
         "bootstrap-sass": "^3.4.1",
-        "vue": "^2.6.12"
+        "vue": "^2.6.12",
+        "vue2-timepicker": "^1.1.5",
+        "vuejs-datepicker": "^1.6.2"
     }
 }

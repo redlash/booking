@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Booking extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     /**
      * Table name.
@@ -45,7 +46,7 @@ class Booking extends Model
     protected $casts = [
         'user_id' => 'integer',
         'meeting_room_id' => 'integer',
-        'occupy_at' => 'date',
+        'occupy_at' => 'datetime',
         'start_at' => 'datetime',
         'end_at' => 'datetime',
     ];

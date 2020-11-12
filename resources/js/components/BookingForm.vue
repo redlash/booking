@@ -4,12 +4,11 @@
         <div class="card-header"><h3>Book a meeting room</h3></div>
         <div class="card-body">
             <form>
-
                 <div class="form-group row">
                     <label for="meeting_room" class="col-md-2 col-form-label text-md-right">Select a meeting room</label>
 
                     <div class="col-md-4">
-                        <select v-model="data.meeting_room_id" @changed="meetingRoomChanged"
+                        <select v-model="state.meeting_room_id" @change="meetingRoomChanged"
                                 id="meeting_room" class="form-control" name="meeting_room" value="" required>
                             <option value="">-- Please select --</option>
                             <option v-for="meetingRoom in meetingRooms" :value="meetingRoom.id">{{ meetingRoom.name }}</option>
@@ -19,32 +18,37 @@
                     <label for="date" class="col-md-2 col-form-label text-md-right">Please select a date</label>
 
                     <div class="col-md-4">
-                        <input v-model="data.occupy_at" @changed="dateChanged"
-                               id="date" type="text" class="form-control" name="date" required>
+                        <datepicker name="date" id="date"
+                                v-model="state.occupy_at"
+                                    @selected="dateChanged"></datepicker>
                     </div>
                 </div>
 
                 <div class="form-group row">
-                    <label for="start_at" class="col-md-2 col-form-label text-md-right">Select a start time</label>
+                    <label for="start_at" class="col-md-2 col-form-label text-md-right">Time</label>
 
                     <div class="col-md-4">
-                        <select v-model="data.start_at" @changed="startTimeChanged"
-                                id="start_at" class="form-control" name="start_at" required>
+                        <vue-timepicker id="start_at"
+                                        :hour-range="[[8, 17]]"
+                                        :minute-interval="15"
+                                        v-model="state.start_at" @change="startTimeChanged">
+
+                        </vue-timepicker>
+                    </div>
+
+
+
+                    <label for="end_at" class="col-md-2 col-form-label text-md-right">Duration</label>
+
+                    <div class="col-md-4">
+                        <select v-model="duration"
+                                id="end_at" class="form-control" name="end_at">
                             <option value="">-- Please select --</option>
-                            <option v-for="time in availableTimes" :value="time">{{ time }}</option>
+                            <option value="30">30 Minutes</option>
+                            <option value="60">60 Minutes</option>
                         </select>
                     </div>
 
-                    <label for="start_at" class="col-md-2 col-form-label text-md-right">Select a start time</label>
-
-                    <div class="col-md-4">
-                        <select v-model="data.end_at"
-                                id="end_at" class="form-control" name="end_at" required>
-                            <option value="">-- Please select --</option>
-                            <option value="18:00">18:00</option>
-                            <option value="18:30">18:30</option>
-                        </select>
-                    </div>
                 </div>
 
                 <div class="form-group row mb-2">
@@ -55,12 +59,18 @@
                     </div>
                 </div>
             </form>
+
         </div>
     </div>
 
 </template>
 
 <script>
+    import Datepicker from 'vuejs-datepicker';
+    import VueTimepicker from 'vue2-timepicker'
+    import 'vue2-timepicker/dist/VueTimepicker.css'
+
+
     export default {
 
         created() {
@@ -74,23 +84,33 @@
 
         props: ['user'],
 
+        components: {
+            Datepicker, VueTimepicker
+        },
+
         data: function () {
 
             let d = new Date();
+            if (d.getHours() > 17) {
+                d.setDate(d.getDate() + 1)
+            }
+            let t =  {
+                HH: null,
+                mm: null,
+                ss: '00'
+            };
 
             return {
-                data: {
+                state: {
                     meeting_room_id: '',
-                    occupy_at: `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`,
-                    start_at: '',
+                    occupy_at: d,
+                    start_at: t,
                     end_at: ''
                 },
                 meetingRooms: [],
-                availableTimes: [
-                    '8:00','8:30','9:00','9:30','10:00','10:30','11:00','11:30',
-                    '12:00','12:30','13:00','13:30','14:00','14:30','15:00','15:30',
-                    '16:00','16:30','17:00'
-                ]
+                showRoomList: false,
+                showEndTime: false,
+                duration: ''
             }
         },
 
@@ -120,10 +140,9 @@
              */
             meetingRoomChanged: function (event) {
 
-                let d = new Date();
-                this.data.occupy_at = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
-                this.data.start_at = '';
-                this.data.end_at = '';
+                const vm = this;
+
+                vm.dateDisabled = vm.state.meeting_room_id === '';
             },
 
             /**
@@ -132,11 +151,40 @@
              * @param event
              */
             dateChanged: function (event) {
-                //
+
+                const vm = this;
+
+                let d = vm.state.occupy_at;
+                d = `${d.getFullYear()}${d.getMonth()+1}${d.getDate()}`;
+                console.log(d);
+
+                if (vm.state.meeting_room_id === '') {
+                    vm.showRoomList = false;
+                    return;
+                }
+
+                fetch(`/api/meeting_room/${vm.state.meeting_room_id}/${d}`,{
+                    mode: 'cors',
+                    headers: {
+                        'Authorization': `Bearer ${vm.user.api_token}`,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        console.log(data);
+                        vm.bookingRecords = data;
+                        vm.showRoomList = true;
+                        vm.timeDisabled = false;
+                    })
             },
 
             startTimeChanged: function (event) {
-                //
+
+                const vm = this;
+
+                vm.showEndTime = true;
             },
 
             submit: function (event) {
@@ -144,6 +192,10 @@
                 let vm = this;
 
                 event.preventDefault();
+                const payload = Object.assign({}, vm.state);
+                payload.occupy_at = `${vm.state.occupy_at.getFullYear()}-${vm.state.occupy_at.getMonth()+1}-${vm.state.occupy_at.getDate()}`;
+                payload.start_at = `${vm.state.start_at.HH}:${vm.state.start_at.mm}`;
+                payload.end_at = vm.getEndAt(vm.state.start_at, vm.duration);
 
                 fetch(`api/booking`, {
                     method: 'post',
@@ -153,13 +205,24 @@
                         'Accept': 'application/json',
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(vm.data)
+                    body: JSON.stringify(payload)
                 }).then(res => res.json())
                     .then(data => {
                         console.log(data);
                         //vm.records = data;
                     })
                     .catch(err => console.log(err))
+            },
+
+            getEndAt: function (startAt, minutes) {
+
+                if ([undefined, null, ''].includes(startAt)) {
+                    return 'Calculating...'
+                }
+                let m = parseInt(startAt.mm) + parseInt(minutes);
+                let h = parseInt(startAt.HH) + Math.trunc(m/60);
+                console.log(`m: ${m}, h: ${h}`)
+                return `${h}:${m%60}`
             }
         }
     }

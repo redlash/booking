@@ -20,7 +20,7 @@ class BookingManager
 
     protected $filters = [];
 
-    protected $sorters = [];
+    protected $sortBy = null;
 
     /**
      * Get all the booking records.
@@ -95,7 +95,7 @@ class BookingManager
      * @return mixed
      * @throws \Exception
      */
-    public function update($bookingId, $data = [], $userId)
+    public function update($bookingId, $data = [], $userId = null)
     {
         $user = $this->getUser($userId);
 

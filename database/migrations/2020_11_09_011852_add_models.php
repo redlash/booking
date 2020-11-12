@@ -17,6 +17,7 @@ class AddModels extends Migration
             $table->id();
             $table->string('name');
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('users_meeting_rooms', function (Blueprint $table) {
@@ -27,6 +28,7 @@ class AddModels extends Migration
             $table->time('start_at');
             $table->time('end_at');
             $table->timestamps();
+            $table->softDeletes();
 
             $table->foreign('user_id')
                 ->references('id')->on('users');
