@@ -33,7 +33,8 @@
                 </div>
             </div>
 
-            <div class="row mt-3" id="filters-container" v-if="records.length > 0 || hasFilters()">
+            <div class="row mt-3 p-3" style="border-bottom: 1px solid lightgrey" id="filters-container"
+                 v-if="records.length > 0 || hasFilters()">
                 <div class="col-md-3">
                     <select v-model="state.filters.user_id" @change="filterChanged"
                             id="filter_by_user" class="form-control" name="filter_by_user">
@@ -63,8 +64,8 @@
                     </select>
                 </div>
             </div>
-            <hr>
-            <div class="row mb-3" v-if="records.length > 0">
+
+            <div class="row mb-3 p-3" style="border-bottom: 1px solid lightgrey" v-if="records.length > 0">
                 <div class="col-md-3 text-center">
                     <span><a @click="sortAsc('date')"><strong>&#94;</strong></a></span>
                     &nbsp;&nbsp;&nbsp;<strong>Date</strong>&nbsp;&nbsp;
@@ -82,9 +83,8 @@
                 </div>
                 <div class="col-md-3 text-center" v-if="![null, undefined, ''].includes(user)"><strong>Actions</strong></div>
             </div>
-            <hr>
 
-            <div class="row mb-2"  v-if="records.length > 0"
+            <div class="row mb-2 p-3" style="border-bottom: 1px solid lightgrey" v-if="records.length > 0"
                  v-for="record in records" :id="'booking-' + record.id">
                 <div class="col-md-3 text-center">{{ record.occupy_at }} ({{ record.start_at }}-{{ record.end_at }})</div>
                 <div class="col-md-3 text-center">{{ record.user.name }}</div>
@@ -94,7 +94,6 @@
                     <a class="btn btn-danger" @click="cancel(record)">Cancel</a>
                 </div>
             </div>
-            <hr>
 
             <div class="row justify-content-center mt-3" id="pagination-container" v-if="records.length > 0 && pagination.links.length > 3">
                 <nav aria-label="pagination">

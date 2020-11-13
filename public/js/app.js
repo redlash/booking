@@ -2350,7 +2350,6 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
-//
 /* harmony default export */ __webpack_exports__["default"] = ({
   created: function created() {
     var vm = this;
@@ -39157,7 +39156,11 @@ var render = function() {
         _vm.records.length > 0 || _vm.hasFilters()
           ? _c(
               "div",
-              { staticClass: "row mt-3", attrs: { id: "filters-container" } },
+              {
+                staticClass: "row mt-3 p-3",
+                staticStyle: { "border-bottom": "1px solid lightgrey" },
+                attrs: { id: "filters-container" }
+              },
               [
                 _c("div", { staticClass: "col-md-3" }, [
                   _c(
@@ -39378,122 +39381,126 @@ var render = function() {
             )
           : _vm._e(),
         _vm._v(" "),
-        _c("hr"),
-        _vm._v(" "),
         _vm.records.length > 0
-          ? _c("div", { staticClass: "row mb-3" }, [
-              _c("div", { staticClass: "col-md-3 text-center" }, [
-                _c("span", [
-                  _c(
-                    "a",
-                    {
-                      on: {
-                        click: function($event) {
-                          return _vm.sortAsc("date")
+          ? _c(
+              "div",
+              {
+                staticClass: "row mb-3 p-3",
+                staticStyle: { "border-bottom": "1px solid lightgrey" }
+              },
+              [
+                _c("div", { staticClass: "col-md-3 text-center" }, [
+                  _c("span", [
+                    _c(
+                      "a",
+                      {
+                        on: {
+                          click: function($event) {
+                            return _vm.sortAsc("date")
+                          }
                         }
-                      }
-                    },
-                    [_c("strong", [_vm._v("^")])]
-                  )
-                ]),
-                _vm._v("\n                   "),
-                _c("strong", [_vm._v("Date")]),
-                _vm._v("  \n                "),
-                _c("span", { staticStyle: { "font-size": "24px" } }, [
-                  _c(
-                    "a",
-                    {
-                      on: {
-                        click: function($event) {
-                          return _vm.sortDesc("date")
+                      },
+                      [_c("strong", [_vm._v("^")])]
+                    )
+                  ]),
+                  _vm._v("\n                   "),
+                  _c("strong", [_vm._v("Date")]),
+                  _vm._v("  \n                "),
+                  _c("span", { staticStyle: { "font-size": "24px" } }, [
+                    _c(
+                      "a",
+                      {
+                        on: {
+                          click: function($event) {
+                            return _vm.sortDesc("date")
+                          }
                         }
-                      }
-                    },
-                    [_c("strong", [_vm._v("⌄")])]
-                  )
-                ])
-              ]),
-              _vm._v(" "),
-              _c("div", { staticClass: "col-md-3 text-center" }, [
-                _c("span", [
-                  _c(
-                    "a",
-                    {
-                      on: {
-                        click: function($event) {
-                          return _vm.sortAsc("user")
-                        }
-                      }
-                    },
-                    [_c("strong", [_vm._v("^")])]
-                  )
-                ]),
-                _vm._v("\n                   "),
-                _c("strong", [_vm._v("Owner")]),
-                _vm._v("  \n                "),
-                _c("span", { staticStyle: { "font-size": "24px" } }, [
-                  _c(
-                    "a",
-                    {
-                      on: {
-                        click: function($event) {
-                          return _vm.sortDesc("user")
-                        }
-                      }
-                    },
-                    [_c("strong", [_vm._v("⌄")])]
-                  )
-                ])
-              ]),
-              _vm._v(" "),
-              _c("div", { staticClass: "col-md-3 text-center" }, [
-                _c("span", [
-                  _c(
-                    "a",
-                    {
-                      on: {
-                        click: function($event) {
-                          return _vm.sortAsc("meeting_room")
-                        }
-                      }
-                    },
-                    [_c("strong", [_vm._v("^")])]
-                  )
-                ]),
-                _vm._v("\n                   "),
-                _c("strong", [_vm._v("Meeting room")]),
-                _vm._v("  \n                "),
-                _c("span", { staticStyle: { "font-size": "24px" } }, [
-                  _c(
-                    "a",
-                    {
-                      on: {
-                        click: function($event) {
-                          return _vm.sortDesc("meeting_room")
-                        }
-                      }
-                    },
-                    [_c("strong", [_vm._v("⌄")])]
-                  )
-                ])
-              ]),
-              _vm._v(" "),
-              ![null, undefined, ""].includes(_vm.user)
-                ? _c("div", { staticClass: "col-md-3 text-center" }, [
-                    _c("strong", [_vm._v("Actions")])
+                      },
+                      [_c("strong", [_vm._v("⌄")])]
+                    )
                   ])
-                : _vm._e()
-            ])
+                ]),
+                _vm._v(" "),
+                _c("div", { staticClass: "col-md-3 text-center" }, [
+                  _c("span", [
+                    _c(
+                      "a",
+                      {
+                        on: {
+                          click: function($event) {
+                            return _vm.sortAsc("user")
+                          }
+                        }
+                      },
+                      [_c("strong", [_vm._v("^")])]
+                    )
+                  ]),
+                  _vm._v("\n                   "),
+                  _c("strong", [_vm._v("Owner")]),
+                  _vm._v("  \n                "),
+                  _c("span", { staticStyle: { "font-size": "24px" } }, [
+                    _c(
+                      "a",
+                      {
+                        on: {
+                          click: function($event) {
+                            return _vm.sortDesc("user")
+                          }
+                        }
+                      },
+                      [_c("strong", [_vm._v("⌄")])]
+                    )
+                  ])
+                ]),
+                _vm._v(" "),
+                _c("div", { staticClass: "col-md-3 text-center" }, [
+                  _c("span", [
+                    _c(
+                      "a",
+                      {
+                        on: {
+                          click: function($event) {
+                            return _vm.sortAsc("meeting_room")
+                          }
+                        }
+                      },
+                      [_c("strong", [_vm._v("^")])]
+                    )
+                  ]),
+                  _vm._v("\n                   "),
+                  _c("strong", [_vm._v("Meeting room")]),
+                  _vm._v("  \n                "),
+                  _c("span", { staticStyle: { "font-size": "24px" } }, [
+                    _c(
+                      "a",
+                      {
+                        on: {
+                          click: function($event) {
+                            return _vm.sortDesc("meeting_room")
+                          }
+                        }
+                      },
+                      [_c("strong", [_vm._v("⌄")])]
+                    )
+                  ])
+                ]),
+                _vm._v(" "),
+                ![null, undefined, ""].includes(_vm.user)
+                  ? _c("div", { staticClass: "col-md-3 text-center" }, [
+                      _c("strong", [_vm._v("Actions")])
+                    ])
+                  : _vm._e()
+              ]
+            )
           : _vm._e(),
-        _vm._v(" "),
-        _c("hr"),
         _vm._v(" "),
         _vm._l(_vm.records, function(record) {
           return _vm.records.length > 0
             ? _c(
                 "div",
                 {
-                  staticClass: "row mb-2",
+                  staticClass: "row mb-2 p-3",
+                  staticStyle: { "border-bottom": "1px solid lightgrey" },
                   attrs: { id: "booking-" + record.id }
                 },
                 [
@@ -39550,8 +39557,6 @@ var render = function() {
               )
             : _vm._e()
         }),
-        _vm._v(" "),
-        _c("hr"),
         _vm._v(" "),
         _vm.records.length > 0 && _vm.pagination.links.length > 3
           ? _c(
