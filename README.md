@@ -18,9 +18,9 @@ cd booking
 npm install && npm run dev
 vagrant up -d (Vagrant users only, you may need to run vagrant init to create Vagrantfile first)
 vagrant ssh (Vagrant users only)
+composer install
 cp .env.example .env
 php artisan key:generate
-composer install
 ```
 - Go to the project directory and run migration and seeder:
 ```$xslt
